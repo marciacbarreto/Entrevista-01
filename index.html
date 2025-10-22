@@ -3,20 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <title>Entrar no Entrevista IA</title>
-</head>
-<body style="font-family: Arial; text-align: center; margin-top: 100px;">
-  <h2>🔒 Acesso restrito</h2>
-  <p>Digite uma senha para continuar:</p>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fafafa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
 
-  <input type="password" id="senha" placeholder="Senha">
-  <button onclick="entrar()">Entrar</button>
-  <p id="erro" style="color: red;"></p>
+    .box {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 320px;
+    }
+
+    h2 {
+      color: #333;
+      font-size: 22px;
+      margin-bottom: 15px;
+    }
+
+    input {
+      padding: 10px;
+      width: 90%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    button {
+      background-color: #8b5cf6; /* lilás Entrevista IA */
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 15px;
+      font-size: 15px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #7c3aed;
+    }
+
+    #erro {
+      color: red;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .emoji {
+      font-size: 35px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <div class="emoji">🔒</div>
+    <h2>Acesso restrito</h2>
+    <p>Digite uma senha para continuar:</p>
+
+    <input type="password" id="senha" placeholder="Senha">
+    <button onclick="entrar()">Entrar</button>
+
+    <p id="erro"></p>
+  </div>
 
   <script>
     function entrar() {
       var senha = document.getElementById("senha").value;
-      if (senha === "2025ia") { // 🔑 aqui está a senha
-        window.location.href = "Entrevista IA - 01"; // página real
+      var senhaCorreta = "2025ia"; // 🔑 altere aqui sua senha se quiser
+      if (senha === senhaCorreta) {
+        // Redireciona para a sua página principal
+        window.location.href = "Entrevista%20IA%20-%2001";
       } else {
         document.getElementById("erro").innerText = "Senha incorreta!";
       }
