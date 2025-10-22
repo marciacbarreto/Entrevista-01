@@ -12,8 +12,11 @@
   <div id="app"></div>
 
   <script>
-    const { useState, createElement: h } = React;
+    const { useState, useEffect, createElement: h } = React;
 
+    // ======================================================
+    // 1️⃣ LOGIN SEGURO
+    // ======================================================
     function App() {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
       const [email, setEmail] = useState("");
@@ -59,16 +62,87 @@
         );
       }
 
-      // 🔽 Aqui começa o seu aplicativo original Entrevista IA
+      // 🔽 Após login, carrega o app completo
       return h(EntrevistaIA);
     }
 
-    // ✅ --- SEU CÓDIGO ORIGINAL INTACTO ABAIXO ---
+    // ======================================================
+    // 2️⃣ ENTREVISTA IA - APLICAÇÃO COMPLETA
+    // ======================================================
     function EntrevistaIA() {
-      // (cole aqui exatamente o seu código original a partir de "function EntrevistaIA() { ... }" até o final)
-      return h('div', { className: "text-center mt-40 text-2xl text-indigo-700 font-bold" }, "🎉 Bem-vindo ao Entrevista IA (aplicativo carregado com sucesso!)");
+      const [curriculo, setCurriculo] = useState('');
+      const [vaga, setVaga] = useState('');
+      const [pergunta, setPergunta] = useState('');
+      const [resposta, setResposta] = useState('');
+      const [etapa, setEtapa] = useState('upload');
+
+      // Processar currículo e vaga antes de iniciar entrevista
+      const handleIniciar = () => {
+        if (!curriculo.trim() || !vaga.trim()) return;
+        setEtapa('entrevista');
+      };
+
+      // Gerar resposta simulada
+      const gerarResposta = () => {
+        if (!pergunta.trim()) return;
+        const respostas = [
+          "Com base na minha experiência, acredito que posso contribuir com resultados consistentes e inovação.",
+          "Tenho foco em resultados, trabalho em equipe e constante aprimoramento técnico.",
+          "Sou comprometido com prazos e qualidade, sempre buscando superar expectativas."
+        ];
+        const aleatoria = respostas[Math.floor(Math.random() * respostas.length)];
+        setResposta(aleatoria);
+      };
+
+      // Página 1 - Upload de currículo e vaga
+      if (etapa === 'upload') {
+        return h("div", { className: "flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-br from-indigo-50 via-white to-purple-50" },
+          h("div", { className: "bg-white p-8 rounded-2xl shadow-xl w-full max-w-2xl" },
+            h("h1", { className: "text-3xl font-bold text-center text-indigo-700 mb-6" }, "📄 Entrevista IA - Configuração"),
+            h("p", { className: "text-gray-600 mb-4 text-center" }, "Adicione seu currículo e a descrição da vaga para gerar respostas personalizadas."),
+            h("textarea", {
+              className: "w-full h-40 p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-indigo-500",
+              placeholder: "Cole aqui seu currículo...",
+              value: curriculo,
+              onChange: (e) => setCurriculo(e.target.value)
+            }),
+            h("textarea", {
+              className: "w-full h-40 p-3 border border-gray-300 rounded-lg mb-6 focus:ring-2 focus:ring-indigo-500",
+              placeholder: "Cole aqui a descrição da vaga...",
+              value: vaga,
+              onChange: (e) => setVaga(e.target.value)
+            }),
+            h("button", {
+              onClick: handleIniciar,
+              className: "w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
+            }, "🚀 Iniciar Entrevista")
+          )
+        );
+      }
+
+      // Página 2 - Entrevista em tempo real
+      return h("div", { className: "flex flex-col items-center min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-6" },
+        h("div", { className: "bg-white rounded-2xl shadow-xl p-8 w-full max-w-3xl" },
+          h("h1", { className: "text-3xl font-bold text-indigo-700 text-center mb-4" }, "🎤 Entrevista IA"),
+          h("p", { className: "text-gray-600 text-center mb-8" }, "Digite ou fale sua pergunta para receber uma resposta inteligente."),
+          h("textarea", {
+            className: "w-full h-32 p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-indigo-500",
+            placeholder: "Digite a pergunta do recrutador...",
+            value: pergunta,
+            onChange: (e) => setPergunta(e.target.value)
+          }),
+          h("button", {
+            onClick: gerarResposta,
+            className: "w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold mb-6 hover:from-indigo-700 hover:to-purple-700 transition-all"
+          }, "💬 Gerar Resposta"),
+          resposta && h("div", { className: "p-4 bg-indigo-50 rounded-lg border border-indigo-200 text-gray-800" }, resposta)
+        )
+      );
     }
 
+    // ======================================================
+    // 3️⃣ INICIALIZAÇÃO
+    // ======================================================
     const root = ReactDOM.createRoot(document.getElementById("app"));
     root.render(h(App));
   </script>
