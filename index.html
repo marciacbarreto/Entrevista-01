@@ -1,1 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Entrar no Entrevista IA</title>
+</head>
+<body style="font-family: Arial; text-align: center; margin-top: 100px;">
+  <h2>🔒 Acesso restrito</h2>
+  <p>Digite a senha para continuar:</p>
 
+  <input type="password" id="senha" placeholder="Senha">
+  <button onclick="entrar()">Entrar</button>
+  <p id="erro" style="color: red;"></p>
+
+  <script>
+    function entrar() {
+      var senha = document.getElementById("senha").value;
+      if (senha === "2025ia") { // 🔑 aqui está a senha
+        window.location.href = "Entrevista IA - 01"; // página real
+      } else {
+        document.getElementById("erro").innerText = "Senha incorreta!";
+      }
+    }
+  </script>
+</body>
+</html>
