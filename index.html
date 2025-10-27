@@ -3,118 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Entrevista IA - Respostas Inteligentes</title>
+  <title>Entrevista IA - Modo Executivo</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 </head>
-<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
-  <div id="app"></div>
+
+<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen flex flex-col items-center justify-center p-4">
+  <div id="app" class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl p-8"></div>
 
   <script>
-    const { useState, useRef, useEffect, createElement: h } = React;
+    const { useState, useEffect, createElement: h } = React;
 
-    // -------------------- LOGIN --------------------
-    function Login({ onAuth }) {
-      const [email, setEmail] = useState("");
-      const [senha, setSenha] = useState("");
-      const [erro, setErro] = useState("");
-
-      const loginCorreto = "admin@entrevistaia.com";
-      const senhaCorreta = "2025ia";
-
-      const handleLogin = () => {
-        if (email === loginCorreto && senha === senhaCorreta) {
-          onAuth(true);
-        } else {
-          setErro("E-mail ou senha incorretos. Tente novamente.");
-        }
-      };
-
-      return h("div", { className: "flex items-center justify-center min-h-screen" },
-        h("div", { className: "bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm text-center" },
-          h("h1", { className: "text-3xl font-bold text-indigo-700 mb-2" }, "🔒 Entrar no Entrevista IA"),
-          h("p", { className: "text-sm text-gray-600 mb-6" }, "Acesse sua sessão segura de entrevistas inteligentes."),
-          h("input", {
-            type: "email",
-            placeholder: "E-mail",
-            value: email,
-            onChange: (e) => setEmail(e.target.value),
-            className: "w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-          }),
-          h("input", {
-            type: "password",
-            placeholder: "Senha",
-            value: senha,
-            onChange: (e) => setSenha(e.target.value),
-            className: "w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-          }),
-          erro && h("p", { className: "text-red-500 text-sm mb-4" }, erro),
-          h("button", {
-            onClick: handleLogin,
-            className: "w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold"
-          }, "Entrar")
-        )
-      );
-    }
-
-    // -------------------- ONBOARDING --------------------
-    function Onboarding({ onReady }) {
-      const [resume, setResume] = useState("");
-      const [job, setJob] = useState("");
-
-      const handleStart = () => {
-        if (resume.trim() && job.trim()) onReady({ resume, job });
-      };
-
-      return h("div", { className: "max-w-3xl mx-auto p-8" },
-        h("div", { className: "bg-white rounded-2xl shadow-lg p-8" },
-          h("h2", { className: "text-2xl font-bold text-indigo-700 mb-4" }, "📄 Nova Sessão de Entrevista"),
-          h("p", { className: "text-gray-600 mb-6" }, "Cole seu currículo e a descrição da vaga para gerar respostas personalizadas."),
-          h("label", { className: "block text-sm font-semibold mb-2" }, "Seu Currículo"),
-          h("textarea", {
-            className: "w-full h-40 p-3 border rounded-lg mb-6 focus:ring-2 focus:ring-indigo-500",
-            placeholder: "Cole aqui seu currículo completo...",
-            value: resume,
-            onChange: (e) => setResume(e.target.value)
-          }),
-          h("label", { className: "block text-sm font-semibold mb-2" }, "Descrição da Vaga"),
-          h("textarea", {
-            className: "w-full h-40 p-3 border rounded-lg mb-6 focus:ring-2 focus:ring-indigo-500",
-            placeholder: "Cole aqui a descrição completa da vaga...",
-            value: job,
-            onChange: (e) => setJob(e.target.value)
-          }),
-          h("button", {
-            onClick: handleStart,
-            className: "w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:opacity-90"
-          }, "🚀 Iniciar Entrevista")
-        )
-      );
-    }
-
-    // -------------------- GERA RESPOSTA --------------------
-    function capitalize(str) {
-      return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
+    // 🔍 Função para extrair palavras-chave
     function extractKeywords(text) {
-      const roles = [...text.matchAll(/Gerente|Líder|Coordenador|Analista|Especialista|Supervisor/gi)].map(m => m[0]);
-      const tools = [...text.matchAll(/Power BI|Excel|CRM|Salesforce|Trello|Zendesk|Hubspot|Jira|OKR/gi)].map(m => m[0]);
-      const metrics = [...text.matchAll(/NPS|CSAT|CES|Churn|Retenção|Expansão/gi)].map(m => m[0]);
-      return { roles, tools, metrics };
+      const tools = ["power bi", "excel", "jira", "crm", "salesforce", "hubspot"];
+      const metrics = ["nps", "csat", "ces", "churn", "retenção", "expansão"];
+      const roles = ["customer success", "customer experience", "cx", "suporte", "gestão", "vendas", "b2b"];
+      const found = (list) => list.filter(w => text.toLowerCase().includes(w));
+      return { tools: found(tools), metrics: found(metrics), roles: found(roles) };
     }
 
+    // 🔠 Capitaliza texto
+    function capitalize(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    // ✨ Nova função com IA simulada (sem OpenAI)
     function generateExecutiveAnswer({ question, resume, job }) {
       const rk = extractKeywords(resume);
       const jk = extractKeywords(job);
-
       const tools = [...new Set([...(jk.tools || []), ...(rk.tools || [])])].slice(0, 3);
       const metrics = [...new Set([...(jk.metrics || []), ...(rk.metrics || [])])].slice(0, 3);
       const roleHint = (jk.roles[0] || rk.roles[0] || "Customer Experience");
 
       const toolsStr = tools.length ? tools.map(capitalize).join(" e ") : "Power BI e Excel";
       const metricsStr = metrics.length ? metrics.map(s => s.toUpperCase()).join(" e ") : "NPS e CSAT";
+
+      const q = question.toLowerCase();
+
+      if (q.includes("venda") || q.includes("b2b") || q.includes("contas")) {
+        return `Sim, tenho experiência sólida em vendas consultivas e gestão de contas B2B.
+Durante minha trajetória, integrei estratégias de Customer Success e áreas comerciais,
+criando fluxos de acompanhamento, expansão e fidelização de clientes corporativos.
+Utilizei ferramentas como ${toolsStr} para análise de performance e identificação de oportunidades de upsell e retenção.
+Além disso, implementei métricas como ${metricsStr} para medir satisfação e crescimento de receita recorrente.`;
+      }
+
+      if (q.includes("estruturaria") || q.includes("estruturaria a área") || q.includes("estruturação")) {
+        return `Eu estruturaria a área com foco em eficiência operacional e clareza de processos.
+Iniciaria com um diagnóstico rápido, mapeando fluxos e gargalos, aplicando ferramentas como ${toolsStr} para mensurar resultados.
+Definiria metas e entregas semanais alinhadas aos indicadores ${metricsStr}, garantindo agilidade, clareza e integração entre os times.`;
+      }
+
+      if (q.includes("lider") || q.includes("gestao") || q.includes("equipe")) {
+        return `Minha abordagem de liderança é centrada em pessoas e resultados.
+Atuo definindo objetivos claros e acompanhando indicadores como ${metricsStr}.
+Valorizo autonomia, melhoria contínua e cultura de dados — uso ${toolsStr} para decisões baseadas em fatos e não em percepções.`;
+      }
 
       return `Na minha última experiência, comecei estruturando a área com foco em eficiência operacional e experiência do cliente.
 Realizei um diagnóstico dos fluxos de atendimento, identifiquei gargalos e implementei processos padronizados com acompanhamento via ${toolsStr}.
@@ -124,113 +70,100 @@ Para esta oportunidade, aplicaria a mesma metodologia — iniciando pelo mapeame
 Estabeleceria rituais de melhoria contínua (reviews semanais e mensais), usaria ${toolsStr} para monitoramento e criaria um playbook de relacionamento alinhado aos objetivos estratégicos da empresa.`;
     }
 
-    // -------------------- MODO ENTREVISTA --------------------
-    function Interview({ resume, job }) {
+    // 💼 Componente principal
+    function InterviewApp() {
+      const [resume, setResume] = useState("");
+      const [job, setJob] = useState("");
       const [question, setQuestion] = useState("");
       const [answer, setAnswer] = useState("");
-      const recRef = useRef(null);
-      const [isRec, setIsRec] = useState(false);
+      const [session, setSession] = useState(Date.now());
 
+      // 🔄 Atualiza resposta automaticamente
       useEffect(() => {
-        if (question.trim().length > 5) {
+        if (question.trim().length > 5 && resume && job) {
           const r = generateExecutiveAnswer({ question, resume, job });
           setAnswer(r);
-        } else setAnswer("");
+        } else {
+          setAnswer("");
+        }
       }, [question, resume, job]);
 
-      const toggleRec = () => {
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) {
-          alert("Captura de voz não suportada neste navegador.");
-          return;
-        }
-        if (!isRec) {
-          const r = new SR();
-          recRef.current = r;
-          r.lang = "pt-BR";
-          r.onresult = (e) => setQuestion(e.results[0][0].transcript || "");
-          r.onend = () => setIsRec(false);
-          r.start();
-          setIsRec(true);
-        } else {
-          recRef.current && recRef.current.stop();
-          setIsRec(false);
-        }
+      // 🧹 Reset
+      const reset = () => {
+        setResume("");
+        setJob("");
+        setQuestion("");
+        setAnswer("");
+        setSession(Date.now());
       };
 
-      return h("div", { className: "max-w-5xl mx-auto p-6" },
-        h("div", { className: "bg-white rounded-xl shadow p-6 mb-4 flex justify-between" },
-          h("div", null,
-            h("h2", { className: "text-xl font-bold text-gray-900" }, "🎯 Modo Entrevista"),
-            h("p", { className: "text-sm text-gray-600" }, "Digite ou fale a pergunta do recrutador. A resposta sai no tom executivo.")
-          ),
-          h("span", { className: "text-sm text-green-700 bg-green-50 px-3 py-1 rounded-full" }, "Sessão ativa")
+      return h("div", { className: "space-y-8" },
+
+        h("h1", { className: "text-3xl font-bold text-indigo-700 flex items-center gap-2" },
+          "🎤 Modo Entrevista"
         ),
-        h("div", { className: "bg-white rounded-xl shadow p-6 mb-6" },
+
+        h("p", { className: "text-gray-600 mb-4" },
+          "Cole seu currículo e a descrição da vaga para gerar respostas personalizadas."
+        ),
+
+        // 🧾 Campos de entrada
+        h("textarea", {
+          className: "w-full border rounded-xl p-4 h-28 shadow-sm focus:ring-2 focus:ring-indigo-400",
+          placeholder: "Cole aqui o currículo...",
+          value: resume,
+          onChange: (e) => setResume(e.target.value)
+        }),
+        h("textarea", {
+          className: "w-full border rounded-xl p-4 h-28 shadow-sm focus:ring-2 focus:ring-indigo-400",
+          placeholder: "Cole aqui a descrição da vaga...",
+          value: job,
+          onChange: (e) => setJob(e.target.value)
+        }),
+
+        // 🎤 Pergunta do recrutador
+        h("div", { className: "mt-8" },
+          h("p", { className: "text-gray-700 mb-2 font-medium" }, "Digite ou fale a pergunta do recrutador:"),
           h("textarea", {
-            className: "w-full h-28 border rounded-lg p-3 focus:ring-2 focus:ring-indigo-500",
-            placeholder: "Ex.: Como você estruturaria a área de CX do zero nesta empresa?",
+            className: "w-full border rounded-xl p-4 h-24 focus:ring-2 focus:ring-purple-400",
+            placeholder: "Ex: Como você estruturaria a área?",
             value: question,
-            onChange: e => setQuestion(e.target.value)
-          }),
-          h("div", { className: "mt-4 flex gap-3 flex-wrap" },
-            h("button", {
-              onClick: toggleRec,
-              className: `flex items-center gap-2 px-4 py-3 rounded-lg text-white ${isRec ? "bg-red-600" : "bg-indigo-600"}`
-            }, isRec ? "🔴 Gravando..." : "🎤 Gravar pergunta"),
-            h("button", {
-              onClick: () => {
-                const r = generateExecutiveAnswer({ question, resume, job });
-                setAnswer(r);
-              },
-              className: "flex items-center gap-2 px-4 py-3 rounded-lg text-white bg-purple-600"
-            }, "⚡ Gerar resposta")
-          )
+            onChange: (e) => setQuestion(e.target.value)
+          })
         ),
-        h("div", { className: "bg-indigo-50 border border-indigo-200 rounded-xl p-5" },
-          h("p", { className: "font-semibold text-indigo-900 mb-2" }, "✨ Resposta sugerida (modelo executivo e natural):"),
-          h("pre", { className: "whitespace-pre-wrap text-indigo-900 leading-relaxed" },
-            answer || "Aguardando pergunta..."
-          )
-        ),
-        h("p", { className: "mt-4 text-sm text-gray-500" },
-          "💡 Dica: use o microfone para capturar perguntas discretamente durante entrevistas online.")
-      );
-    }
 
-    // -------------------- APLICAÇÃO PRINCIPAL --------------------
-    function App() {
-      const [auth, setAuth] = useState(false);
-      const [data, setData] = useState(null);
-      const [sessionKey, setSessionKey] = useState(Date.now());
-
-      const handleNewSession = () => {
-        setData(null);
-        setSessionKey(Date.now());
-      };
-
-      if (!auth) return h(Login, { onAuth: () => setAuth(true) });
-      if (!data)
-        return h(Onboarding, {
-          key: sessionKey,
-          onReady: (newData) => setData({ resume: newData.resume.trim(), job: newData.job.trim() }),
-        });
-
-      return h("div", null,
-        h("div", { className: "flex justify-between items-center p-4 bg-white/70 border-b mb-2" },
-          h("h1", { className: "font-semibold text-indigo-700" }, "🧩 Sessão de Entrevista Ativa"),
+        // ⚡ Botões
+        h("div", { className: "flex gap-4 mt-4" },
           h("button", {
-            onClick: handleNewSession,
-            className: "px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:opacity-90"
+            className: "bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md",
+            onClick: () => setQuestion(""),
+          }, "🎙️ Gravar pergunta"),
+          h("button", {
+            className: "bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md",
+            onClick: () => {
+              const r = generateExecutiveAnswer({ question, resume, job });
+              setAnswer(r);
+            },
+          }, "⚡ Gerar resposta"),
+          h("button", {
+            className: "ml-auto bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold",
+            onClick: reset
           }, "🆕 Nova Vaga / Currículo")
         ),
-        h(Interview, { key: sessionKey, resume: data.resume, job: data.job })
+
+        // 💬 Resposta
+        answer && h("div", { className: "mt-8 p-6 bg-indigo-50 border border-indigo-100 rounded-xl shadow-inner" },
+          h("p", { className: "font-semibold text-indigo-700 mb-2" }, "✨ Resposta sugerida (modelo executivo e natural):"),
+          h("p", { className: "text-gray-700 whitespace-pre-line leading-relaxed" }, answer)
+        ),
+
+        h("p", { className: "text-sm text-gray-500 mt-6" },
+          "💡 Dica rápida: use o microfone para capturar perguntas discretamente durante entrevistas online."
+        )
       );
     }
 
-    const root = ReactDOM.createRoot(document.getElementById("app"));
-    root.render(h(App));
+    ReactDOM.createRoot(document.getElementById("app")).render(h(InterviewApp));
   </script>
 </body>
 </html>
-
