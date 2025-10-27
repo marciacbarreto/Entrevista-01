@@ -2,168 +2,292 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Entrevista IA - Modo Executivo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Entrevista IA — Login + Entrevista</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 </head>
-
-<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen flex flex-col items-center justify-center p-4">
-  <div id="app" class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl p-8"></div>
+<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
+  <div id="app" class="max-w-6xl mx-auto p-4"></div>
 
   <script>
-    const { useState, useEffect, createElement: h } = React;
+    const { useState, useEffect, useMemo, createElement: h } = React;
 
-    // 🔍 Função para extrair palavras-chave
-    function extractKeywords(text) {
-      const tools = ["power bi", "excel", "jira", "crm", "salesforce", "hubspot"];
-      const metrics = ["nps", "csat", "ces", "churn", "retenção", "expansão"];
-      const roles = ["customer success", "customer experience", "cx", "suporte", "gestão", "vendas", "b2b"];
-      const found = (list) => list.filter(w => text.toLowerCase().includes(w));
-      return { tools: found(tools), metrics: found(metrics), roles: found(roles) };
+    /* ========================
+       Utils “executivo” local
+       ======================== */
+
+    function pickTools(resume, job) {
+      const t = [];
+      const text = (resume + " " + job).toLowerCase();
+      if (text.includes("power bi") || text.includes("bi")) t.push("Power BI");
+      if (text.includes("excel")) t.push("Excel");
+      if (text.includes("jira")) t.push("Jira");
+      if (text.includes("crm")) t.push("CRM");
+      if (text.includes("helpdesk")) t.push("Helpdesk");
+      if (text.includes("okrs") || text.includes("okr")) t.push("OKRs");
+      if (text.includes("nps")) t.push("NPS");
+      if (text.includes("csat")) t.push("CSAT");
+      if (text.includes("ces")) t.push("CES");
+      if (text.includes("customer success") || text.includes("cs")) t.push("Customer Success");
+      return [...new Set(t)];
     }
 
-    // 🔠 Capitaliza texto
-    function capitalize(s) {
-      return s.charAt(0).toUpperCase() + s.slice(1);
+    function buildExecutiveAnswer(question, resume, job) {
+      const tools = pickTools(resume, job);
+      const toolsTxt = tools.length ? tools.join(", ") : "ferramentas de gestão e análise alinhadas ao contexto";
+
+      const seniorTouch =
+        "Aplicaria rituais leves de melhoria contínua (checkpoints semanais/mensais), com quadro de riscos e dependências, " +
+        "e indicadores visíveis (painel de metas e progresso).";
+
+      const cxBlock = (job.toLowerCase().includes("customer") || job.toLowerCase().includes("cx"))
+        ? "No pilar de experiência do cliente (CX), estruturaria a jornada ponta a ponta, " +
+          "definindo momentos de valor, SLAs/SLIs, e um fluxo claro de feedback → priorização → ação junto a Produto e Operações."
+        : "";
+
+      // resposta curta específica quando a pergunta é muito direta
+      if ((question || "").toLowerCase().includes("estruturaria") ||
+          (question || "").toLowerCase().includes("como você estruturaria") ||
+          (question || "").toLowerCase().includes("como voce estruturaria")) {
+        return (
+          "Eu estruturaria a área em três frentes: (1) diagnóstico rápido da operação e jornada, " +
+          "mapeando gargalos e definindo processos mínimos (SOPs, SLAs); (2) metas claras e OKRs por time, " +
+          "com cadência semanal de entregas; (3) visibilidade de dados em tempo real via " + toolsTxt +
+          ". " + cxBlock + " " + seniorTouch
+        );
+      }
+
+      // modelo executivo padrão (encaixa bem na maioria das perguntas abertas)
+      return (
+        "Na experiência recente, atuei estruturando a área com foco em eficiência operacional e experiência do cliente. " +
+        "Começo com um diagnóstico objetivo (fluxos, gargalos, responsabilidades) e traduzo isso em " +
+        "processos simples, metas claras e uma cadência semanal de entregas. " +
+        "Para escalar e dar previsibilidade, uso " + toolsTxt + " para unificar visão de indicadores (NPS/CSAT, taxa de resolução, retrabalho), " +
+        "acompanhamento de backlog e priorização. " + cxBlock + " " + seniorTouch
+      );
     }
 
-    // ✨ Nova função com IA simulada (sem OpenAI)
-    function generateExecutiveAnswer({ question, resume, job }) {
-      const rk = extractKeywords(resume);
-      const jk = extractKeywords(job);
-      const tools = [...new Set([...(jk.tools || []), ...(rk.tools || [])])].slice(0, 3);
-      const metrics = [...new Set([...(jk.metrics || []), ...(rk.metrics || [])])].slice(0, 3);
-      const roleHint = (jk.roles[0] || rk.roles[0] || "Customer Experience");
-
-      const toolsStr = tools.length ? tools.map(capitalize).join(" e ") : "Power BI e Excel";
-      const metricsStr = metrics.length ? metrics.map(s => s.toUpperCase()).join(" e ") : "NPS e CSAT";
-
-      const q = question.toLowerCase();
-
-      if (q.includes("venda") || q.includes("b2b") || q.includes("contas")) {
-        return `Sim, tenho experiência sólida em vendas consultivas e gestão de contas B2B.
-Durante minha trajetória, integrei estratégias de Customer Success e áreas comerciais,
-criando fluxos de acompanhamento, expansão e fidelização de clientes corporativos.
-Utilizei ferramentas como ${toolsStr} para análise de performance e identificação de oportunidades de upsell e retenção.
-Além disso, implementei métricas como ${metricsStr} para medir satisfação e crescimento de receita recorrente.`;
-      }
-
-      if (q.includes("estruturaria") || q.includes("estruturaria a área") || q.includes("estruturação")) {
-        return `Eu estruturaria a área com foco em eficiência operacional e clareza de processos.
-Iniciaria com um diagnóstico rápido, mapeando fluxos e gargalos, aplicando ferramentas como ${toolsStr} para mensurar resultados.
-Definiria metas e entregas semanais alinhadas aos indicadores ${metricsStr}, garantindo agilidade, clareza e integração entre os times.`;
-      }
-
-      if (q.includes("lider") || q.includes("gestao") || q.includes("equipe")) {
-        return `Minha abordagem de liderança é centrada em pessoas e resultados.
-Atuo definindo objetivos claros e acompanhando indicadores como ${metricsStr}.
-Valorizo autonomia, melhoria contínua e cultura de dados — uso ${toolsStr} para decisões baseadas em fatos e não em percepções.`;
-      }
-
-      return `Na minha última experiência, comecei estruturando a área com foco em eficiência operacional e experiência do cliente.
-Realizei um diagnóstico dos fluxos de atendimento, identifiquei gargalos e implementei processos padronizados com acompanhamento via ${toolsStr}.
-Desenvolvi um modelo de ${capitalize(roleHint)} com metas de ${metricsStr}, além de integrar times de Suporte, CX e Produto para garantir uma visão única do cliente.
-
-Para esta oportunidade, aplicaria a mesma metodologia — iniciando pelo mapeamento da jornada, definição de KPIs de retenção, engajamento e expansão.
-Estabeleceria rituais de melhoria contínua (reviews semanais e mensais), usaria ${toolsStr} para monitoramento e criaria um playbook de relacionamento alinhado aos objetivos estratégicos da empresa.`;
+    function makeSessionId() {
+      return Math.random().toString(36).slice(2, 10);
     }
 
-    // 💼 Componente principal
-    function InterviewApp() {
-      const [resume, setResume] = useState("");
-      const [job, setJob] = useState("");
-      const [question, setQuestion] = useState("");
-      const [answer, setAnswer] = useState("");
-      const [session, setSession] = useState(Date.now());
+    /* ========================
+       Login
+       ======================== */
 
-      // 🔄 Atualiza resposta automaticamente
-      useEffect(() => {
-        if (question.trim().length > 5 && resume && job) {
-          const r = generateExecutiveAnswer({ question, resume, job });
-          setAnswer(r);
-        } else {
-          setAnswer("");
-        }
-      }, [question, resume, job]);
+    function Login({ onOk }) {
+      const [email, setEmail] = useState("");
+      const [senha, setSenha] = useState("");
+      const [erro, setErro] = useState("");
 
-      // 🧹 Reset
-      const reset = () => {
-        setResume("");
-        setJob("");
-        setQuestion("");
-        setAnswer("");
-        setSession(Date.now());
+      const login = () => {
+        const ok = email === "admin@entrevistaia.com" && senha === "2025ia";
+        if (ok) { setErro(""); onOk(); }
+        else setErro("E-mail ou senha incorretos.");
       };
 
-      return h("div", { className: "space-y-8" },
-
-        h("h1", { className: "text-3xl font-bold text-indigo-700 flex items-center gap-2" },
-          "🎤 Modo Entrevista"
-        ),
-
-        h("p", { className: "text-gray-600 mb-4" },
-          "Cole seu currículo e a descrição da vaga para gerar respostas personalizadas."
-        ),
-
-        // 🧾 Campos de entrada
-        h("textarea", {
-          className: "w-full border rounded-xl p-4 h-28 shadow-sm focus:ring-2 focus:ring-indigo-400",
-          placeholder: "Cole aqui o currículo...",
-          value: resume,
-          onChange: (e) => setResume(e.target.value)
-        }),
-        h("textarea", {
-          className: "w-full border rounded-xl p-4 h-28 shadow-sm focus:ring-2 focus:ring-indigo-400",
-          placeholder: "Cole aqui a descrição da vaga...",
-          value: job,
-          onChange: (e) => setJob(e.target.value)
-        }),
-
-        // 🎤 Pergunta do recrutador
-        h("div", { className: "mt-8" },
-          h("p", { className: "text-gray-700 mb-2 font-medium" }, "Digite ou fale a pergunta do recrutador:"),
-          h("textarea", {
-            className: "w-full border rounded-xl p-4 h-24 focus:ring-2 focus:ring-purple-400",
-            placeholder: "Ex: Como você estruturaria a área?",
-            value: question,
-            onChange: (e) => setQuestion(e.target.value)
-          })
-        ),
-
-        // ⚡ Botões
-        h("div", { className: "flex gap-4 mt-4" },
+      return h("div", { className: "min-h-screen flex items-center justify-center" },
+        h("div", { className: "bg-white w-full max-w-md rounded-2xl shadow-xl p-8" },
+          h("div", { className: "flex items-center space-x-3 mb-6" },
+            h("div", { className: "w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center" }, "🔒"),
+            h("h1", { className: "text-2xl font-bold text-indigo-700" }, "Entrar no Entrevista IA")
+          ),
+          h("input", {
+            type: "email",
+            placeholder: "E-mail",
+            value: email,
+            onChange: e => setEmail(e.target.value),
+            className: "w-full mb-3 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          }),
+          h("input", {
+            type: "password",
+            placeholder: "Senha",
+            value: senha,
+            onChange: e => setSenha(e.target.value),
+            className: "w-full mb-3 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500"
+          }),
+          erro && h("p", { className: "text-red-500 text-sm mb-3" }, erro),
           h("button", {
-            className: "bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md",
-            onClick: () => setQuestion(""),
-          }, "🎙️ Gravar pergunta"),
-          h("button", {
-            className: "bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md",
-            onClick: () => {
-              const r = generateExecutiveAnswer({ question, resume, job });
-              setAnswer(r);
-            },
-          }, "⚡ Gerar resposta"),
-          h("button", {
-            className: "ml-auto bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold",
-            onClick: reset
-          }, "🆕 Nova Vaga / Currículo")
-        ),
-
-        // 💬 Resposta
-        answer && h("div", { className: "mt-8 p-6 bg-indigo-50 border border-indigo-100 rounded-xl shadow-inner" },
-          h("p", { className: "font-semibold text-indigo-700 mb-2" }, "✨ Resposta sugerida (modelo executivo e natural):"),
-          h("p", { className: "text-gray-700 whitespace-pre-line leading-relaxed" }, answer)
-        ),
-
-        h("p", { className: "text-sm text-gray-500 mt-6" },
-          "💡 Dica rápida: use o microfone para capturar perguntas discretamente durante entrevistas online."
+            onClick: login,
+            className: "w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold"
+          }, "Entrar")
         )
       );
     }
 
-    ReactDOM.createRoot(document.getElementById("app")).render(h(InterviewApp));
+    /* ========================
+       Entrevista
+       ======================== */
+
+    function Interview() {
+      const [sessionId, setSessionId] = useState(makeSessionId());
+
+      const [resume, setResume] = useState("");
+      const [job, setJob] = useState("");
+      const [question, setQuestion] = useState("");
+
+      const [answer, setAnswer] = useState(null);
+      const [history, setHistory] = useState([]);
+      const [isRecording, setIsRecording] = useState(false);
+
+      // 🔄 LIMPA resposta quando a pergunta muda (evita ficar com a antiga)
+      useEffect(() => { setAnswer(null); }, [question]);
+
+      // ⚙️ Gera SEMPRE com valores atuais (nada de fechamento de escopo)
+      const handleGenerate = () => {
+        const q = question.trim();
+        const cv = resume.trim();
+        const j = job.trim();
+        if (!q || !cv || !j) {
+          setAnswer({
+            title: "Complete os campos",
+            text: "Preencha currículo, descrição da vaga e a pergunta para gerar a resposta.",
+          });
+          return;
+        }
+        const text = buildExecutiveAnswer(q, cv, j);
+        const item = {
+          timestamp: new Date().toLocaleTimeString("pt-BR", { hour: '2-digit', minute: '2-digit' }),
+          question: q, text
+        };
+        setAnswer({ title: "Resposta sugerida (modelo executivo e natural):", text });
+        setHistory(prev => [item, ...prev]);
+      };
+
+      const toggleMic = () => {
+        if (!isRecording) {
+          setIsRecording(true);
+          setTimeout(() => {
+            setIsRecording(false);
+            // simulação: “captura” uma pergunta
+            setQuestion("Como você estruturaria a área com foco em eficiência e CX?");
+          }, 1800);
+        } else {
+          setIsRecording(false);
+        }
+      };
+
+      const resetSession = () => {
+        setResume("");
+        setJob("");
+        setQuestion("");
+        setAnswer(null);
+        setHistory([]);
+        setSessionId(makeSessionId());
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+
+      return h("div", { className: "max-w-6xl mx-auto p-4" },
+        // Header
+        h("div", { className: "bg-white rounded-xl shadow-sm p-4 mb-6 flex items-center justify-between" },
+          h("div", { className: "flex items-center space-x-3" },
+            h("div", { className: "w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-lg flex items-center justify-center" }, "✨"),
+            h("div", null,
+              h("h1", { className: "text-lg font-bold text-gray-900" }, "Entrevista IA"),
+              h("p", { className: "text-xs text-gray-500" }, `Sessão: ${sessionId}`)
+            )
+          ),
+          h("div", { className: "flex items-center space-x-2" },
+            h("button", {
+              onClick: resetSession,
+              className: "px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg"
+            }, "Nova sessão")
+          )
+        ),
+
+        // Onboarding (CV e Vaga)
+        h("div", { className: "grid lg:grid-cols-2 gap-6 mb-6" },
+          h("div", { className: "bg-white rounded-xl shadow p-6" },
+            h("h3", { className: "font-semibold text-gray-900 mb-2" }, "📄 Seu currículo"),
+            h("textarea", {
+              className: "w-full h-48 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none",
+              placeholder: "Cole aqui seu currículo (experiências, resultados, ferramentas, métricas) ...",
+              value: resume, onChange: e => setResume(e.target.value)
+            })
+          ),
+          h("div", { className: "bg-white rounded-xl shadow p-6" },
+            h("h3", { className: "font-semibold text-gray-900 mb-2" }, "📋 Descrição da vaga"),
+            h("textarea", {
+              className: "w-full h-48 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none",
+              placeholder: "Cole aqui a descrição da vaga ...",
+              value: job, onChange: e => setJob(e.target.value)
+            })
+          )
+        ),
+
+        // Modo entrevista
+        h("div", { className: "bg-white rounded-xl shadow p-6 mb-6" },
+          h("div", { className: "flex items-center justify-between mb-3" },
+            h("h3", { className: "font-semibold text-gray-900" }, "🎙️ Modo Entrevista"),
+            h("div", { className: "flex items-center bg-gray-100 rounded-lg p-1" },
+              h("button", {
+                onClick: toggleMic,
+                className: `px-3 py-1.5 rounded text-sm font-medium ${isRecording ? "bg-white text-red-600 shadow" : "text-gray-600"}`
+              }, isRecording ? "Gravando..." : "Usar microfone")
+            )
+          ),
+          h("textarea", {
+            className: "w-full h-28 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 resize-none mb-4",
+            placeholder: "Digite a pergunta do recrutador...",
+            value: question, onChange: e => setQuestion(e.target.value)
+          }),
+          h("div", { className: "flex items-center space-x-3" },
+            h("button", {
+              onClick: toggleMic,
+              className: "px-4 py-3 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+            }, isRecording ? "🔴 Gravando..." : "🎤 Gravar pergunta"),
+            h("button", {
+              onClick: handleGenerate,
+              className: "px-4 py-3 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold"
+            }, "⚡ Gerar resposta")
+          )
+        ),
+
+        // Resposta
+        answer && h("div", { className: "bg-indigo-50 border border-indigo-200 rounded-xl p-6 mb-6" },
+          h("p", { className: "text-indigo-900 font-semibold mb-2" }, answer.title || "Resposta sugerida:"),
+          h("p", { className: "text-indigo-900 leading-relaxed" }, answer.text)
+        ),
+
+        // Histórico
+        h("div", { className: "bg-white rounded-xl shadow p-6" },
+          h("div", { className: "flex items-center justify-between mb-3" },
+            h("h3", { className: "font-semibold text-gray-900" }, "📜 Histórico da sessão"),
+            h("span", { className: "text-xs text-gray-500" }, `${history.length} respostas`)
+          ),
+          history.length === 0
+            ? h("p", { className: "text-gray-500" }, "Sem respostas ainda.")
+            : h("div", { className: "space-y-4" },
+                history.map((item, i) =>
+                  h("div", { key: i, className: "border-l-4 border-indigo-600 pl-4" },
+                    h("div", { className: "text-xs text-gray-500 mb-1" }, item.timestamp),
+                    h("p", { className: "text-gray-700 font-medium mb-1" }, item.question),
+                    h("p", { className: "text-gray-700" }, item.text)
+                  )
+                )
+              )
+        ),
+
+        // Dica
+        h("p", { className: "text-sm text-gray-500 mt-6 mb-10" },
+          "💡 Dica: trocou a pergunta, o sistema limpa a resposta anterior para evitar confusão. " +
+          "Use ‘Nova sessão’ quando mudar de CV e/ou vaga."
+        )
+      );
+    }
+
+    /* ========================
+       App
+       ======================== */
+
+    function App() {
+      const [ok, setOk] = useState(false);
+      return ok ? h(Interview) : h(Login, { onOk: () => setOk(true) });
+    }
+
+    ReactDOM.createRoot(document.getElementById("app")).render(h(App));
   </script>
 </body>
 </html>
