@@ -3,100 +3,142 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Entrevista IA - Respostas Inteligentes</title>
+  <title>Entrevista IA - Modo Voz</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen flex flex-col items-center justify-center p-6">
 
   <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-8 space-y-6">
-    <h1 class="text-3xl font-bold text-indigo-700 text-center">🎯 Entrevista IA</h1>
-    <p class="text-center text-gray-600 mb-4">Simule respostas executivas e naturais para entrevistas de emprego</p>
+    <h1 class="text-3xl font-bold text-indigo-700 text-center">🎤 Entrevista IA - Voz Ativa</h1>
+    <p class="text-center text-gray-600 mb-4">Fale naturalmente. O microfone ficará ativo até você clicar novamente.</p>
 
-    <!-- Campos de currículo e vaga -->
     <div>
       <label class="block text-sm font-semibold text-gray-700 mb-2">📄 Currículo</label>
-      <textarea id="cvInput" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500" rows="4" placeholder="Cole aqui o seu currículo completo..."></textarea>
+      <textarea id="cv" rows="3" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500" placeholder="Cole aqui o seu currículo completo..."></textarea>
     </div>
 
     <div>
       <label class="block text-sm font-semibold text-gray-700 mb-2">💼 Atribuições da vaga</label>
-      <textarea id="vagaInput" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500" rows="3" placeholder="Cole aqui as responsabilidades da vaga..."></textarea>
+      <textarea id="vaga" rows="3" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500" placeholder="Cole aqui as responsabilidades da vaga..."></textarea>
     </div>
 
-    <!-- Campo da pergunta -->
     <div>
-      <label class="block text-sm font-semibold text-gray-700 mb-2">💬 Digite ou fale a pergunta do recrutador:</label>
-      <textarea id="perguntaInput" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500" rows="2" placeholder="Digite a pergunta aqui..."></textarea>
+      <label class="block text-sm font-semibold text-gray-700 mb-2">💬 Pergunta do recrutador (digite ou fale):</label>
+      <textarea id="pergunta" rows="2" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500" placeholder="Clique no microfone e fale..."></textarea>
     </div>
 
-    <!-- Botões -->
-    <div class="flex items-center justify-center space-x-4">
-      <button id="btnGravar" class="px-6 py-3 bg-purple-600 text-white font-semibold rounded-lg shadow hover:bg-purple-700 transition-all">🎤 Gravar pergunta</button>
-      <button id="btnGerar" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow hover:bg-indigo-700 transition-all">⚡ Gerar resposta</button>
-      <button id="btnNova" class="px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow hover:bg-gray-300 transition-all">🆕 Nova Vaga / Currículo</button>
+    <div class="flex items-center justify-center gap-4">
+      <button id="btnMic" class="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-all">🎙️ Ativar microfone</button>
+      <button id="btnGerar" class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all">⚡ Gerar resposta</button>
     </div>
 
-    <!-- Caixa de resposta -->
-    <div id="respostaBox" class="mt-6 bg-indigo-50 border border-indigo-200 rounded-xl p-6 text-gray-800 shadow-inner"></div>
+    <div id="respostaBox" class="mt-6 bg-indigo-50 border border-indigo-200 rounded-xl p-6 text-gray-800 shadow-inner min-h-[100px]"></div>
 
-    <!-- Dica -->
-    <p class="text-center text-xs text-gray-500 mt-3">💡 Dica: use o microfone para capturar perguntas durante entrevistas online.</p>
+    <p class="text-center text-xs text-gray-500 mt-3">💡 Dica: clique em “Ativar microfone”, fale sua pergunta e clique novamente para encerrar.</p>
   </div>
 
   <script>
-    const el = (id) => document.getElementById(id);
-    const cvEl = el('cvInput');
-    const vagaEl = el('vagaInput');
-    const perguntaEl = el('perguntaInput');
-    const btnGerar = el('btnGerar');
-    const btnNova = el('btnNova');
-    const respostaBox = el('respostaBox');
+    const cvEl = document.getElementById("cv");
+    const vagaEl = document.getElementById("vaga");
+    const perguntaEl = document.getElementById("pergunta");
+    const btnMic = document.getElementById("btnMic");
+    const btnGerar = document.getElementById("btnGerar");
+    const respostaBox = document.getElementById("respostaBox");
 
-    // 🔄 Botão para limpar tudo
-    btnNova.addEventListener('click', () => {
-      cvEl.value = '';
-      vagaEl.value = '';
-      perguntaEl.value = '';
-      respostaBox.innerHTML = '';
+    let reconhecimento;
+    let ouvindo = false;
+
+    // 🎙️ Ativar/desativar microfone
+    btnMic.addEventListener("click", () => {
+      if (!ouvindo) iniciarReconhecimento();
+      else pararReconhecimento();
     });
 
-    // ⚡ Clique no botão "Gerar resposta"
-    btnGerar.addEventListener('click', () => {
+    function iniciarReconhecimento() {
+      if (!('webkitSpeechRecognition' in window)) {
+        alert("Seu navegador não suporta reconhecimento de voz.");
+        return;
+      }
+
+      reconhecimento = new webkitSpeechRecognition();
+      reconhecimento.lang = "pt-BR";
+      reconhecimento.continuous = true;
+      reconhecimento.interimResults = true;
+
+      let textoFinal = "";
+
+      reconhecimento.onstart = () => {
+        ouvindo = true;
+        btnMic.textContent = "🛑 Parar microfone";
+        btnMic.classList.replace("bg-purple-600", "bg-red-600");
+      };
+
+      reconhecimento.onresult = (event) => {
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) textoFinal += event.results[i][0].transcript + " ";
+          else interim += event.results[i][0].transcript;
+        }
+        perguntaEl.value = textoFinal + interim;
+      };
+
+      reconhecimento.onerror = (e) => console.log("Erro no microfone:", e);
+      reconhecimento.onend = () => {
+        if (ouvindo) reconhecimento.start(); // 🔁 continua ouvindo até clicar para parar
+      };
+
+      reconhecimento.start();
+    }
+
+    function pararReconhecimento() {
+      ouvindo = false;
+      reconhecimento.stop();
+      btnMic.textContent = "🎙️ Ativar microfone";
+      btnMic.classList.replace("bg-red-600", "bg-purple-600");
+
+      // gera resposta automaticamente ao parar
+      gerarResposta();
+    }
+
+    // ⚡ Gera resposta (manual ou automático)
+    btnGerar.addEventListener("click", gerarResposta);
+
+    function gerarResposta() {
       const cv = cvEl.value.trim();
       const vaga = vagaEl.value.trim();
       const pergunta = perguntaEl.value.trim();
 
       if (!pergunta) {
-        respostaBox.innerHTML = '<p class="text-red-500 font-medium">Digite a pergunta do recrutador.</p>';
+        respostaBox.innerHTML = `<p class="text-red-500 font-medium">Digite ou fale uma pergunta.</p>`;
         return;
       }
 
-      respostaBox.innerHTML = '<p class="text-gray-500 italic">Gerando resposta...</p>';
+      respostaBox.innerHTML = `<p class="text-gray-500 italic">Gerando resposta...</p>`;
 
       setTimeout(() => {
-        const resposta = gerarRespostaExecutiva(cv, vaga, pergunta);
+        const resposta = gerarTexto(cv, vaga, pergunta);
         respostaBox.innerHTML = `
           <h3 class="font-semibold text-indigo-700 mb-2">✨ Resposta sugerida (modelo executivo e natural):</h3>
           <p class="text-gray-800 leading-relaxed whitespace-pre-line">${resposta}</p>
         `;
-      }, 1000);
-    });
+      }, 800);
+    }
 
-    // 🧠 Função inteligente local (sem API paga)
-    function gerarRespostaExecutiva(cv, vaga, pergunta) {
-      const experiencia = cv ? "Com base na sua experiência descrita, especialmente nas áreas de liderança e melhoria de processos," : "";
-      const contexto = vaga ? "de acordo com os requisitos da vaga, que envolvem eficiência, experiência do cliente e análise de dados," : "";
-
-      const respostasBase = [
-        "Na minha última experiência, comecei estruturando a área com foco em eficiência operacional e experiência do cliente.\nRealizei diagnóstico dos fluxos de atendimento, identifiquei gargalos e implementei processos padronizados com acompanhamento via Power BI e Jira.\nDesenvolvi um modelo de Customer Success com metas de NPS e CSAT, integrando times de Suporte, CX e Produto para garantir uma visão única do cliente.\nPara esta oportunidade, aplicaria a mesma metodologia, mapeando a jornada do cliente, definindo KPIs e implantando revisões contínuas para garantir excelência e resultados escaláveis.",
-        "Eu estruturaria a área com base em eficiência, clareza de processos e orientação a resultados.\nIniciaria com um diagnóstico rápido, mapeando gargalos e aplicando ferramentas como Power BI, Excel e CRM para mensurar desempenho.\nDefiniria metas claras e revisões periódicas para garantir alinhamento estratégico e agilidade operacional."
-      ];
-
-      let resposta = respostasBase[Math.floor(Math.random() * respostasBase.length)];
-      resposta = `${experiencia} ${contexto} ${resposta}`;
-      return resposta.trim();
+    // 🧠 Lógica local — sem API paga
+    function gerarTexto(cv, vaga, pergunta) {
+      const base = "Com base na sua experiência e no contexto da vaga, ";
+      if (pergunta.toLowerCase().includes("estrutur")) {
+        return `${base}eu estruturaria a área com foco em eficiência e clareza de processos. Começaria com diagnóstico de fluxos e definição de metas claras, usando Power BI, Excel e CRM para garantir previsibilidade e resultados tangíveis.`;
+      }
+      if (pergunta.toLowerCase().includes("cliente") || pergunta.toLowerCase().includes("cx")) {
+        return `${base}priorizaria a experiência do cliente, aplicando rotinas de acompanhamento, análise de NPS e automação de interações para garantir uma jornada fluida e encantadora.`;
+      }
+      if (pergunta.toLowerCase().includes("time") || pergunta.toLowerCase().includes("lider")) {
+        return `${base}fortaleceria a equipe com rituais ágeis, feedback contínuo e alinhamento por OKRs, garantindo performance e engajamento.`;
+      }
+      return `${base}minha resposta se basearia em diagnóstico rápido, execução prática e foco em métricas de valor para empresa e cliente.`;
     }
   </script>
-
 </body>
 </html>
