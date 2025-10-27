@@ -14,7 +14,6 @@
 <body class="min-h-screen bg-[radial-gradient(ellipse_at_top_left,_#f1e9ff,_#e9f0ff_70%)]">
   <div id="app"></div>
 
-  <!-- React UMD -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
@@ -22,7 +21,7 @@
   const { useState, useRef, useEffect, createElement: h } = React;
 
   function App(){
-    const [stage, setStage] = useState("login");           // login | setup | interview
+    const [stage, setStage] = useState("login");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [erroLogin, setErroLogin] = useState("");
@@ -36,7 +35,7 @@
     const [isRec, setIsRec] = useState(false);
     const recRef = useRef(null);
 
-    // ---------- LOGIN ----------
+    // LOGIN
     function handleLogin(){
       const OK_EMAIL = "admin@entrevistaia.com";
       const OK_PASS  = "2025ia";
@@ -48,16 +47,15 @@
       }
     }
 
-    // ---------- SPEECH ----------
+    // RECONHECIMENTO DE VOZ
     function startRec(){
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
       if(!SR){
-        // fallback simples: simula uma captura em 2s
         setIsRec(true);
         setTimeout(()=>{
-          setQuestion(prev=> prev ? prev : "Como você estruturaria a área?");
+          setQuestion(prev => prev || "Como você estruturaria a área?");
           setIsRec(false);
-        }, 1800);
+        }, 2000);
         return;
       }
       const rec = new SR();
@@ -80,129 +78,75 @@
       setIsRec(false);
     }
 
-    // ---------- HEURÍSTICAS (CRUZAMENTO LOCAL) ----------
+    // CRUZAMENTO LOCAL CURRÍCULO + VAGA
     const STOP = new Set("a o os as um uma uns umas de da do das dos e é em no na por para com como que se ao aos às pela pelo nos nas".split(" "));
-    const TOOLS = [
-      "power bi","excel","sql","python","r","tableau","looker","okrs","kanban","scrum",
-      "trello","jira","monday","sap","erp","crm","powerpoint","notion","sharepoint",
-      "aws","gcp","azure","zapier","make","rpa","automation","bi"
-    ];
-    const EXEC_TERMS = [
-      "eficiência","processos","diagnóstico","indicadores","kpi","governança","estratégia",
-      "padronização","métricas","resultados","entregas","alinhamento","roadmap","custos","qualidade"
-    ];
+    const TOOLS = ["power bi","excel","sql","python","r","tableau","okrs","kanban","trello","jira","scrum","monday","sap","crm","erp","notion"];
+    const EXEC_TERMS = ["eficiência","processos","indicadores","estratégia","governança","resultados","alinhamento","planejamento","métricas","gestão"];
 
     function norm(s){ return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
-    function tokens(s){
-      return norm(s).replace(/[^\w\s%$.,-]/g," ").split(/\s+/).filter(t=> t && !STOP.has(t));
-    }
+    function tokens(s){ return norm(s).split(/\s+/).filter(t=> t && !STOP.has(t)); }
+
     function findTools(text){
       const n = norm(text);
-      const found = [];
-      for(const t of TOOLS){ if(n.includes(t)) found.push(t); }
-      return [...new Set(found)];
+      return [...new Set(TOOLS.filter(t => n.includes(t)))];
     }
     function findExecTerms(text){
       const n = norm(text);
-      const found = [];
-      for(const t of EXEC_TERMS){ if(n.includes(t)) found.push(t); }
-      return [...new Set(found)];
+      return [...new Set(EXEC_TERMS.filter(t => n.includes(t)))];
     }
-    function numbers(text){
-      const arr = [];
-      arr.push(...(text.match(/r\$ ?[\d\.,]+/gi)||[]));
-      arr.push(...(text.match(/[\d\.,]+%/g)||[]));
-      const uniq = [...new Set(arr)];
-      return uniq.slice(0,2);
-    }
-    function topOverlap(resume, job, k=4){
+
+    function topOverlap(resume, job){
       const r = tokens(resume), j = tokens(job);
-      const f = {};
-      r.forEach(t=> f[t]=(f[t]||0)+1);
-      const mm = [];
+      const freq = {};
+      r.forEach(t=> freq[t]=(freq[t]||0)+1);
+      const match = [];
       const seen = new Set();
       j.forEach(t=>{
-        if(f[t] && !seen.has(t)){ mm.push({t, s:f[t]}); seen.add(t); }
+        if(freq[t] && !seen.has(t)){ match.push({t, s:freq[t]}); seen.add(t); }
       });
-      mm.sort((a,b)=> b.s-a.s);
-      return mm.slice(0,k).map(x=>x.t);
+      match.sort((a,b)=>b.s-a.s);
+      return match.slice(0,4).map(x=>x.t);
     }
 
-    function buildExecutiveAnswer(q, resume, job){
-      // 1) coleta ingredientes
-      const matchTerms = topOverlap(resume, job, 4);
+    function buildAnswer(q, resume, job){
+      const matchTerms = topOverlap(resume, job);
       const tools = findTools(resume + " " + job);
       const execs = findExecTerms(resume + " " + job);
-      const nums = numbers(resume + " " + job);
-
-      // defaults úteis para mercado
-      const defaultTools = ["power bi","trello","okrs"];
-      const chosenTools = [...new Set([...(tools.slice(0,3)), ...defaultTools])].slice(0,3);
-
-      const foco = matchTerms.length ? matchTerms.slice(0,2).join(" e ") : "eficiência e clareza de processos";
+      const foco = matchTerms[0] ? matchTerms.slice(0,2).join(" e ") : "eficiência e clareza de processos";
       const exec1 = execs[0] || "indicadores e governança";
-      const prova = nums[0] ? `com resultados mensuráveis (${nums[0]})` : "com resultados mensuráveis";
+      const chosenTools = (tools.length ? tools.slice(0,2) : ["Power BI","Trello"]).join(", ");
 
-      // 2) interpreta pergunta para ajustar início
-      const qq = norm(q);
-      let abertura = "Eu estruturaria a área com foco em " + foco + ".";
-      if(/por que|contratar|diferencial|valor/.test(qq)){
-        abertura = "Meu diferencial é trazer estrutura e velocidade com foco em " + foco + ".";
-      } else if(/fraqueza|ponto a melhorar|desafio/.test(qq)){
-        abertura = "Tenho evoluído continuamente em priorização e delegação para manter foco em " + foco + ".";
-      }
+      const L1 = "Eu estruturaria a área com foco em " + foco + ".";
+      const L2 = "Iniciaria com um diagnóstico rápido, mapeando fluxos e gargalos, definindo " + exec1 + " e metas claras.";
+      const L3 = "Aplicaria ferramentas como " + chosenTools + " para garantir agilidade e resultados mensuráveis.";
 
-      // 3) resposta curta, executiva, natural (3 linhas aprox.)
-      // Linha 1 — direção
-      const L1 = abertura;
-      // Linha 2 — como
-      const L2 = `Começo por um diagnóstico rápido, mapeando fluxos e gargalos; defino ${exec1} e metas visíveis.`;
-      // Linha 3 — ferramentas + cadência + prova
-      const L3 = `Uso ${chosenTools.join(", ")} e cadência semanal de entregas para garantir alinhamento e ${prova}.`;
-
-      // manter objetivo (sem passar de ~400 caracteres)
-      const out = `${L1} ${L2} ${L3}`.replace(/\s+/g," ").trim();
-      return out.length > 420 ? out.slice(0,417) + "..." : out;
+      return `${L1} ${L2} ${L3}`;
     }
 
     async function handleGenerate(){
       if(!question.trim()) return;
       setProcessing(true);
-      // simula latência leve p/ UX
-      await new Promise(r=> setTimeout(r, 600));
-      const ans = buildExecutiveAnswer(question, resume, job);
+      await new Promise(r=>setTimeout(r,600));
+      const ans = buildAnswer(question,resume,job);
       setAnswer(ans);
       setProcessing(false);
     }
 
-    // ---------- TELAS ----------
+    // TELAS
     if(stage==="login"){
-      return h("div", {className:"min-h-screen flex items-center justify-center px-4"},
-        h("div", {className:"soft-card bg-white rounded-2xl p-8 w-full max-w-md"},
+      return h("div",{className:"min-h-screen flex items-center justify-center px-4"},
+        h("div",{className:"soft-card bg-white rounded-2xl p-8 w-full max-w-md"},
           h("div",{className:"flex items-center gap-3 mb-6"},
             h("span",{className:"text-3xl"},"🔒"),
             h("h1",{className:"text-2xl font-bold text-indigo-700"},"Entrar no Entrevista IA")
           ),
           h("p",{className:"text-sm text-gray-500 mb-6"},"Acesse sua sessão segura de entrevistas inteligentes."),
-          h("input",{
-            className:"w-full mb-3 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none",
-            placeholder:"E-mail",
-            type:"email",
-            value:email,
-            onChange:e=>setEmail(e.target.value)
-          }),
-          h("input",{
-            className:"w-full mb-3 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none",
-            placeholder:"Senha",
-            type:"password",
-            value:senha,
-            onChange:e=>setSenha(e.target.value)
-          }),
+          h("input",{type:"email",placeholder:"E-mail",value:email,onChange:e=>setEmail(e.target.value),
+            className:"w-full mb-3 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none"}),
+          h("input",{type:"password",placeholder:"Senha",value:senha,onChange:e=>setSenha(e.target.value),
+            className:"w-full mb-3 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none"}),
           erroLogin && h("p",{className:"text-sm text-red-600 mb-3"},erroLogin),
-          h("button",{
-            className:"btn-grad w-full text-white py-3 rounded-lg font-semibold",
-            onClick:handleLogin
-          },"Entrar")
+          h("button",{className:"btn-grad w-full text-white py-3 rounded-lg font-semibold",onClick:handleLogin},"Entrar")
         )
       );
     }
@@ -217,68 +161,43 @@
           h("div",{className:"grid md:grid-cols-2 gap-6"},
             h("div",null,
               h("label",{className:"text-sm font-medium text-gray-700"},"Currículo"),
-              h("textarea",{
-                className:"mt-2 w-full h-60 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none",
-                placeholder:"Cole aqui seu currículo (experiências, resultados, ferramentas, times, números...)",
-                value:resume,
-                onChange:e=>setResume(e.target.value)
-              })
+              h("textarea",{className:"mt-2 w-full h-60 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none",
+                placeholder:"Cole aqui seu currículo...",value:resume,onChange:e=>setResume(e.target.value)})
             ),
             h("div",null,
               h("label",{className:"text-sm font-medium text-gray-700"},"Descrição da vaga"),
-              h("textarea",{
-                className:"mt-2 w-full h-60 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none",
-                placeholder:"Cole aqui a vaga (responsabilidades, requisitos, metas, ferramentas...)",
-                value:job,
-                onChange:e=>setJob(e.target.value)
-              })
+              h("textarea",{className:"mt-2 w-full h-60 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none",
+                placeholder:"Cole aqui a vaga...",value:job,onChange:e=>setJob(e.target.value)})
             )
           ),
           h("div",{className:"mt-6 flex gap-3"},
-            h("button",{
-              className:"btn-grad text-white px-5 py-3 rounded-lg font-semibold disabled:opacity-50",
-              disabled:!(resume.trim() && job.trim()),
-              onClick:()=>setStage("interview")
-            },"✨ Analisar e continuar"),
-            h("button",{
-              className:"px-5 py-3 rounded-lg font-semibold border",
-              onClick:()=>{ setResume(""); setJob(""); }
-            },"Limpar")
+            h("button",{className:"btn-grad text-white px-5 py-3 rounded-lg font-semibold disabled:opacity-50",
+              disabled:!(resume.trim() && job.trim()),onClick:()=>setStage("interview")},"✨ Analisar e continuar")
           )
         )
       );
     }
 
-    // interview
     return h("div",{className:"max-w-6xl mx-auto px-4 py-8"},
       h("div",{className:"bg-white soft-card rounded-2xl p-6"},
         h("div",{className:"flex items-center justify-between mb-4"},
           h("h2",{className:"text-2xl font-bold text-indigo-700 flex items-center gap-2"},
             h("span",null,"🎤"), "Modo Entrevista"
           ),
-          h("div",{className:"text-xs text-gray-500"}, "Sessão ativa")
+          h("div",{className:"text-xs text-gray-500"},"Sessão ativa")
         ),
         h("p",{className:"text-sm text-gray-600 mb-4"},"Digite ou fale a pergunta do recrutador."),
-        h("textarea",{
-          className:"w-full h-32 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none mb-4",
-          placeholder:"Ex.: Como você estruturaria a área?",
-          value:question,
-          onChange:e=>setQuestion(e.target.value)
-        }),
+        h("textarea",{className:"w-full h-32 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none mb-4",
+          placeholder:"Ex.: Como você estruturaria a área?",value:question,onChange:e=>setQuestion(e.target.value)}),
         h("div",{className:"flex flex-wrap gap-3"},
-          h("button",{
-            className:`px-5 py-3 rounded-lg font-semibold text-white ${isRec?'bg-red-500':'bg-indigo-700'} hover:brightness-105`,
-            onClick:()=> isRec ? stopRec() : startRec()
-          }, isRec ? "🔴 Gravando..." : "🎙️ Gravar pergunta"),
-          h("button",{
-            className:"btn-grad text-white px-5 py-3 rounded-lg font-semibold disabled:opacity-50",
-            disabled: processing || !question.trim(),
-            onClick:handleGenerate
-          }, processing ? "⏳ Gerando..." : "📤 Gerar resposta")
+          h("button",{className:`px-5 py-3 rounded-lg font-semibold text-white ${isRec?'bg-red-500':'bg-indigo-700'} hover:brightness-105`,
+            onClick:()=>isRec?stopRec():startRec()},isRec?"🔴 Gravando...":"🎙️ Gravar pergunta"),
+          h("button",{className:"btn-grad text-white px-5 py-3 rounded-lg font-semibold disabled:opacity-50",
+            disabled:processing||!question.trim(),onClick:handleGenerate},processing?"⏳ Gerando...":"📤 Gerar resposta")
         ),
         answer && h("div",{className:"mt-6 p-4 rounded-xl border border-indigo-100 bg-indigo-50"},
           h("p",{className:"text-sm font-semibold text-indigo-900 mb-2"},"✨ Resposta sugerida:"),
-          h("p",{className:"text-indigo-900 leading-relaxed"}, answer)
+          h("p",{className:"text-indigo-900 leading-relaxed"},answer)
         ),
         h("div",{className:"mt-6 text-sm text-gray-500 flex items-center gap-2"},
           h("span",null,"💡"),
