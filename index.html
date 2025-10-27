@@ -1,95 +1,160 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Entrar no Entrevista IA</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #fafafa;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .box {
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      text-align: center;
-      width: 320px;
-    }
-
-    h2 {
-      color: #333;
-      font-size: 22px;
-      margin-bottom: 15px;
-    }
-
-    input {
-      padding: 10px;
-      width: 90%;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      margin-bottom: 15px;
-      font-size: 14px;
-    }
-
-    button {
-      background-color: #8b5cf6; /* lilás Entrevista IA */
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 15px;
-      font-size: 15px;
-      cursor: pointer;
-      width: 100%;
-    }
-
-    button:hover {
-      background-color: #7c3aed;
-    }
-
-    #erro {
-      color: red;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    .emoji {
-      font-size: 35px;
-      margin-bottom: 10px;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entrevista IA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 </head>
-
-<body>
-  <div class="box">
-    <div class="emoji">🔒</div>
-    <h2>Acesso restrito</h2>
-    <p>Digite uma senha para continuar:</p>
-
-    <input type="password" id="senha" placeholder="Senha">
-    <button onclick="entrar()">Entrar</button>
-
-    <p id="erro"></p>
-  </div>
+<body class="bg-gradient-to-br from-indigo-200 via-purple-100 to-blue-200 min-h-screen flex items-center justify-center">
+  <div id="app"></div>
 
   <script>
-    function entrar() {
-      var senha = document.getElementById("senha").value;
-      var senhaCorreta = "2025ia"; // 🔑 altere aqui sua senha se quiser
-      if (senha === senhaCorreta) {
-        // Redireciona para a sua página principal
-        window.location.href = "Entrevista%20IA%20-%2001";
-      } else {
-        document.getElementById("erro").innerText = "Senha incorreta!";
+    const { useState, createElement: h, useEffect } = React;
+
+    function App() {
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [email, setEmail] = useState("");
+      const [senha, setSenha] = useState("");
+      const [erro, setErro] = useState("");
+
+      const loginCorreto = "admin@entrevistaia.com";
+      const senhaCorreta = "2025ia";
+
+      const handleLogin = () => {
+        if (email === loginCorreto && senha === senhaCorreta) {
+          setIsLoggedIn(true);
+        } else {
+          setErro("E-mail ou senha incorretos. Tente novamente.");
+        }
+      };
+
+      if (!isLoggedIn) {
+        return h("div", { className: "bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md text-center" },
+          h("h1", { className: "text-3xl font-bold text-indigo-700 mb-4" }, "🔒 Entrar no Entrevista IA"),
+          h("p", { className: "text-gray-500 mb-6" }, "Acesse sua sessão segura de entrevistas inteligentes."),
+          h("input", {
+            type: "email",
+            placeholder: "E-mail",
+            value: email,
+            onChange: (e) => setEmail(e.target.value),
+            className: "w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+          }),
+          h("input", {
+            type: "password",
+            placeholder: "Senha",
+            value: senha,
+            onChange: (e) => setSenha(e.target.value),
+            className: "w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+          }),
+          erro && h("p", { className: "text-red-500 text-sm mb-4" }, erro),
+          h("button", {
+            onClick: handleLogin,
+            className: "w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
+          }, "Entrar")
+        );
       }
+
+      return h(EntrevistaIA);
     }
+
+    function EntrevistaIA() {
+      const [stage, setStage] = useState("onboarding");
+      const [resume, setResume] = useState("");
+      const [jobDescription, setJobDescription] = useState("");
+      const [question, setQuestion] = useState("");
+      const [isRecording, setIsRecording] = useState(false);
+      const [transcript, setTranscript] = useState("");
+      const [answer, setAnswer] = useState("");
+
+      useEffect(() => {
+        if (isRecording) {
+          const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+          recognition.lang = "pt-BR";
+          recognition.start();
+          recognition.onresult = (event) => {
+            const text = event.results[0][0].transcript;
+            setTranscript(text);
+            setQuestion(text);
+          };
+          recognition.onend = () => setIsRecording(false);
+          return () => recognition.stop();
+        }
+      }, [isRecording]);
+
+      const gerarResposta = () => {
+        if (!question.trim()) return;
+        setAnswer("Gerando resposta inteligente...");
+        setTimeout(() => {
+          setAnswer("Com base na sua experiência e no que a vaga exige, sua resposta ideal deve destacar suas principais habilidades, resultados e motivação genuína para o cargo. Demonstre segurança e conexão com a empresa.");
+        }, 1500);
+      };
+
+      if (stage === "onboarding") {
+        return h("div", { className: "bg-white shadow-2xl rounded-2xl p-8 max-w-3xl w-full" },
+          h("h1", { className: "text-3xl font-bold text-indigo-700 mb-4 text-center" }, "✨ Entrevista IA"),
+          h("p", { className: "text-gray-600 mb-8 text-center" }, "Respostas inteligentes em tempo real para sua entrevista."),
+          h("div", { className: "mb-6" },
+            h("label", { className: "block text-sm font-medium text-gray-700 mb-2" }, "📄 Cole seu currículo:"),
+            h("textarea", {
+              value: resume,
+              onChange: (e) => setResume(e.target.value),
+              placeholder: "Cole aqui seu currículo completo...",
+              className: "w-full h-32 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 resize-none"
+            })
+          ),
+          h("div", { className: "mb-6" },
+            h("label", { className: "block text-sm font-medium text-gray-700 mb-2" }, "📋 Descrição da vaga:"),
+            h("textarea", {
+              value: jobDescription,
+              onChange: (e) => setJobDescription(e.target.value),
+              placeholder: "Cole aqui a descrição da vaga...",
+              className: "w-full h-32 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 resize-none"
+            })
+          ),
+          h("button", {
+            onClick: () => setStage("interview"),
+            disabled: !resume.trim() || !jobDescription.trim(),
+            className: "w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all disabled:opacity-50"
+          }, "✨ Iniciar Análise Inteligente")
+        );
+      }
+
+      return h("div", { className: "bg-white shadow-2xl rounded-2xl p-8 max-w-3xl w-full" },
+        h("h2", { className: "text-2xl font-bold text-indigo-700 mb-4" }, "🎤 Modo Entrevista"),
+        h("p", { className: "text-gray-600 mb-6" }, "Digite ou fale a pergunta do recrutador."),
+        h("div", { className: "flex flex-col gap-4 mb-6" },
+          h("textarea", {
+            value: question,
+            onChange: (e) => setQuestion(e.target.value),
+            placeholder: "Digite ou grave a pergunta...",
+            className: "w-full h-28 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 resize-none"
+          }),
+          h("div", { className: "flex justify-between" },
+            h("button", {
+              onClick: () => setIsRecording(!isRecording),
+              className: `flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-semibold text-white ${isRecording ? "bg-red-500" : "bg-indigo-600"} hover:opacity-90 transition`
+            }, isRecording ? "🔴 Gravando..." : "🎤 Gravar pergunta"),
+            h("button", {
+              onClick: gerarResposta,
+              className: "bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition"
+            }, "📤 Gerar resposta")
+          )
+        ),
+        answer && h("div", { className: "bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-indigo-900 shadow-inner" },
+          h("p", { className: "font-semibold mb-2" }, "✨ Resposta sugerida:"),
+          h("p", null, answer)
+        ),
+        h("div", { className: "mt-6 text-sm text-gray-500 text-center" },
+          "💡 Dica rápida: use o microfone para capturar perguntas discretamente durante entrevistas online."
+        )
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("app"));
+    root.render(h(App));
   </script>
 </body>
 </html>
