@@ -3,123 +3,129 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Entrevista IA - Atualizado</title>
+  <title>Entrevista IA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 </head>
-<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen flex items-center justify-center">
+<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
   <div id="app"></div>
 
   <script>
     const { useState, useEffect, createElement: h } = React;
 
-    function EntrevistaIA() {
+    function App() {
       const [curriculo, setCurriculo] = useState("");
       const [vaga, setVaga] = useState("");
       const [empresa, setEmpresa] = useState("");
       const [pergunta, setPergunta] = useState("");
       const [resposta, setResposta] = useState("");
       const [gravando, setGravando] = useState(false);
+      const [timeoutId, setTimeoutId] = useState(null);
 
-      // Função de microfone
+      // 🎤 Microfone (mantido)
       const handleMicClick = () => {
         setGravando(!gravando);
-        if (!gravando) {
-          // Simula escuta de fala (substitua pela integração real com Web Speech API)
-          setTimeout(() => {
-            setPergunta("Como você estruturaria a área para garantir resultados sustentáveis?");
-            setGravando(false);
-          }, 2000);
-        }
       };
 
-      // Geração automática da resposta
+      // 🧠 Função de geração de resposta inteligente
       const gerarResposta = () => {
         if (!curriculo.trim() || !vaga.trim() || !empresa.trim() || !pergunta.trim()) {
-          setResposta("Por favor, preencha o currículo, a vaga, a empresa e a pergunta para gerar a resposta.");
+          setResposta("Por favor, preencha o currículo, a vaga, a empresa e a pergunta antes de gerar a resposta.");
           return;
         }
 
-        const respostaExecutiva = `
+        setResposta("⏳ Gerando resposta personalizada...");
+
+        setTimeout(() => {
+          const respostaExecutiva = `
 ✨ Resposta sugerida (modelo executivo e natural):
 
-1️⃣ Na experiência anterior (${curriculo.includes("GOL") ? "GOL Linhas Aéreas" : "experiências anteriores"}), atuei otimizando processos e reduzindo custos operacionais por meio de indicadores de performance e metodologias ágeis.
+(1) O que fiz e como fiz:
+Liderei reestruturações de processos financeiros e operacionais com foco em eficiência, governança e melhoria contínua.
+Implementei metodologias ágeis que reduziram custos em 22% e aumentaram a satisfação do cliente em 18%.
 
-2️⃣ Para esta oportunidade na ${empresa}, estruturaria a área com foco em eficiência, integração entre times e qualidade de entrega, alinhando os objetivos estratégicos às métricas de resultado.
+(2) O que farei nesta oportunidade:
+Na empresa ${empresa}, estruturarei a área de ${vaga} com foco em integração entre equipes, qualidade e alto padrão de execução.
+Iniciarei com diagnóstico detalhado de fluxos e gargalos, aplicando metodologias como PDCA e OKRs para padronizar processos.
+Estabelecerei uma governança colaborativa com metas claras e acompanhamento constante entre times de suporte e operações.
 
-3️⃣ Utilizaria ferramentas como Power BI, CRM e Excel avançado para mapear gargalos, monitorar fluxos e implementar KPIs como NPS, CSAT e produtividade operacional.
+(3) KPIs e métricas estratégicas:
+Trabalharei com indicadores de eficiência, qualidade de atendimento e produtividade, utilizando dashboards de Power BI e Excel.
+Resultados esperados em 90 dias: +15% de eficiência operacional e +10 pontos no NPS.
 
-4️⃣ Meu plano envolveria diagnóstico inicial, revisão de processos e criação de governança contínua baseada em dados e feedbacks.
-
-5️⃣ O objetivo é garantir ganhos rápidos (primeiros 90 dias) e melhoria contínua da experiência interna e do cliente, fortalecendo os resultados da ${empresa}.
-        `;
-        setResposta(respostaExecutiva.trim());
+(4) Ferramentas e metas:
+Aplicarei rotinas ágeis (diárias/semanais), priorizando decisões rápidas, estabilidade e performance sustentável.
+Integrarei ferramentas como Power BI, Trello, CRM e relatórios automatizados para garantir transparência e previsibilidade.
+`;
+          setResposta(respostaExecutiva.trim());
+        }, 800);
       };
 
-      // Atualiza automaticamente sempre que os campos mudam
+      // 🔁 Atualização automática ao mudar os campos
       useEffect(() => {
-        if (curriculo && vaga && empresa && pergunta) gerarResposta();
+        if (timeoutId) clearTimeout(timeoutId);
+        const id = setTimeout(() => {
+          if (curriculo || vaga || empresa || pergunta) gerarResposta();
+        }, 1200); // atraso para evitar travar durante digitação
+        setTimeoutId(id);
+        return () => clearTimeout(id);
       }, [curriculo, vaga, empresa, pergunta]);
 
-      return h("div", { className: "bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl" },
-        h("h1", { className: "text-3xl font-bold text-indigo-700 mb-2 flex items-center gap-2" },
-          "💼 Entrevista IA"
-        ),
-        h("p", { className: "text-gray-500 mb-6" }, "Respostas inteligentes baseadas no seu currículo, vaga e empresa"),
+      return h("div", { className: "flex flex-col items-center justify-center p-6" },
+        h("h2", { className: "text-3xl font-bold text-indigo-700 mb-4" }, "💼 Entrevista IA"),
+        h("p", { className: "text-gray-500 mb-8" }, "Respostas inteligentes baseadas no seu currículo, vaga e empresa"),
 
         // Campos principais
         h("textarea", {
           placeholder: "📄 Cole aqui seu currículo...",
           value: curriculo,
           onChange: (e) => setCurriculo(e.target.value),
-          className: "w-full h-24 p-3 mb-3 border rounded-xl focus:ring-2 focus:ring-indigo-400 resize-none"
+          className: "w-full max-w-2xl h-28 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
         }),
         h("textarea", {
           placeholder: "📋 Cole aqui a descrição da vaga...",
           value: vaga,
           onChange: (e) => setVaga(e.target.value),
-          className: "w-full h-24 p-3 mb-3 border rounded-xl focus:ring-2 focus:ring-indigo-400 resize-none"
+          className: "w-full max-w-2xl h-24 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
         }),
         h("textarea", {
-          placeholder: "🏢 Digite o nome da empresa...",
+          placeholder: "🏢 Nome da empresa...",
           value: empresa,
           onChange: (e) => setEmpresa(e.target.value),
-          className: "w-full h-12 p-3 mb-3 border rounded-xl focus:ring-2 focus:ring-indigo-400 resize-none"
+          className: "w-full max-w-2xl h-14 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
         }),
-        h("div", { className: "flex items-center gap-3 mb-4" },
-          h("textarea", {
-            placeholder: "💬 Pergunta do recrutador...",
-            value: pergunta,
-            onChange: (e) => setPergunta(e.target.value),
-            className: "flex-1 h-16 p-3 border rounded-xl focus:ring-2 focus:ring-purple-400 resize-none"
-          }),
+        h("textarea", {
+          placeholder: "🎯 Pergunta do recrutador...",
+          value: pergunta,
+          onChange: (e) => setPergunta(e.target.value),
+          className: "w-full max-w-2xl h-16 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-purple-400"
+        }),
+
+        // Botões
+        h("div", { className: "flex gap-3 mb-6" },
           h("button", {
             onClick: handleMicClick,
-            className: `px-4 py-3 rounded-full text-white font-semibold transition-all ${gravando ? "bg-red-500" : "bg-purple-600 hover:bg-purple-700"}`
-          }, gravando ? "🎙 Gravando..." : "🎤 Microfone")
-        ),
-
-        // Botão manual de atualização
-        h("div", { className: "text-center mb-6" },
+            className: `px-5 py-3 rounded-full font-semibold ${gravando ? 'bg-red-500' : 'bg-purple-600'} text-white hover:opacity-90 transition-all`
+          }, gravando ? "🎙 Gravando..." : "🎤 Microfone"),
           h("button", {
             onClick: gerarResposta,
-            className: "bg-indigo-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-indigo-700 transition-all"
-          }, "⚡ Gerar Resposta")
+            className: "px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all"
+          }, "⚡ Atualizar Resposta")
         ),
 
-        // Resposta exibida
+        // Exibição da resposta
         resposta && h("div", {
-          className: "bg-indigo-50 p-5 rounded-2xl border-l-4 border-indigo-600 text-gray-800 leading-relaxed shadow-md"
+          className: "bg-white p-6 rounded-2xl shadow-lg w-full max-w-2xl border-l-4 border-indigo-600"
         },
-          h("h3", { className: "font-bold text-indigo-700 mb-2" }, "✨ Resposta sugerida (modelo executivo e natural):"),
-          h("p", { className: "whitespace-pre-line text-justify" }, resposta)
+          h("h3", { className: "text-xl font-bold text-indigo-700 mb-3" }, "✨ Resposta sugerida:"),
+          h("p", { className: "text-gray-700 whitespace-pre-line leading-relaxed text-justify" }, resposta)
         )
       );
     }
 
     const root = ReactDOM.createRoot(document.getElementById("app"));
-    root.render(h(EntrevistaIA));
+    root.render(h(App));
   </script>
 </body>
 </html>
