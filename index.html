@@ -2,11 +2,16 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Entrevista IA - Login Seguro</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React 18 UMD -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <style>
+    /* apenas para quebra suave de linhas no bloco de resposta */
+    .resp-text { white-space: pre-line; }
+  </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
   <div id="app"></div>
@@ -14,6 +19,7 @@
   <script>
     const { useState, useEffect, createElement: h } = React;
 
+    /* ===================== APP (Login) ===================== */
     function App() {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
       const [email, setEmail] = useState("");
@@ -24,7 +30,7 @@
       const senhaCorreta = "2025ia";
 
       const handleLogin = () => {
-        if (email === loginCorreto && senha === senhaCorreta) {
+        if (email.trim() === loginCorreto && senha.trim() === senhaCorreta) {
           setIsLoggedIn(true);
           setErro("");
         } else {
@@ -62,73 +68,166 @@
       return h(EntrevistaIA);
     }
 
+    /* ============ Funções utilitárias para a resposta ============ */
+    function extrairEmpresa(empresaTexto) {
+      // pega o primeiro nome/termo significativo
+      const limpo = (empresaTexto || "").trim();
+      if (!limpo) return "a empresa";
+      // tenta capturar algo como primeira palavra/frase
+      const primeiraLinha = limpo.split(/\n|-/)[0].trim();
+      return primeiraLinha.length > 2 ? primeiraLinha : "a empresa";
+    }
+
+    function tem(curriculo, termo) {
+      return curriculo.toLowerCase().includes(termo.toLowerCase());
+    }
+
+    function buildBlocos({ curriculo, vaga, empresa, pergunta }) {
+      const empresaNome = extrairEmpresa(empresa);
+
+      // heurísticas simples para puxar métricas do currículo
+      const temGol = tem(curriculo, "gol");
+      const temBI = tem(curriculo, "power bi") || tem(curriculo, "tableau");
+      const temKPI = tem(curriculo, "kpi") || tem(curriculo, "indicadores") || tem(curriculo, "métricas");
+      const temLean = tem(curriculo, "lean") || tem(curriculo, "pdca") || tem(curriculo, "okrs") || tem(curriculo, "six sigma");
+      const temCRM = tem(curriculo, "crm") || tem(curriculo, "salesforce") || tem(curriculo, "hubspot");
+
+      // (1) O que fiz e como fiz — 2 linhas (duas sentenças curtas)
+      const bloco1 = [
+        temGol
+          ? "Na GOL Linhas Aéreas, liderei a reestruturação de processos financeiros e operacionais com foco em eficiência."
+          : "Liderei reestruturações de processos financeiros e operacionais com foco em eficiência e governança.",
+        "Apliquei metodologias ágeis que reduziram custos em 22% e elevaram a satisfação do cliente em 18%."
+      ].join("\n");
+
+      // (2) O que farei — 4 linhas (quatro sentenças curtas)
+      const focoCargo = vaga.toLowerCase().includes("treinamento") || vaga.toLowerCase().includes("qualidade")
+        ? "treinamento e qualidade"
+        : "operações";
+      const bloco2 = [
+        `Na ${empresaNome}, estruturarei a área de ${focoCargo} com foco em integração entre equipes e alto padrão de execução.`,
+        "Começo com diagnóstico detalhado de fluxos críticos e mapeamento de gargalos para padronizar processos.",
+        "Estabeleço governança colaborativa com metas claras e rituais de acompanhamento entre áreas-chave.",
+        "Prioridade: entregas rápidas, segurança de decisão e consistência de performance nas rotinas diárias."
+      ].join("\n");
+
+      // (3) KPIs — 2 linhas (duas sentenças curtas)
+      const kpisBase = temKPI
+        ? "KPIs de eficiência, NPS/CSAT, tempo de resposta e taxa de retrabalho"
+        : "indicadores de eficiência, qualidade do atendimento e velocidade operacional";
+      const bloco3 = [
+        `Trabalharei com ${kpisBase} para direcionar decisões e priorização de melhorias.`,
+        "Painéis em Power BI/Excel consolidam visão diária e suportam correções rápidas de rota."
+      ].join("\n");
+
+      // (4) Ferramentas & metas — 3 linhas (três sentenças curtas)
+      const ferramentas = [
+        temLean ? "PDCA e OKRs" : "métodos ágeis de melhoria contínua",
+        temBI ? "Power BI" : "Excel avançado",
+        temCRM ? "CRM" : "gestão visual de processos"
+      ].join(", ");
+      const bloco4 = [
+        `Utilizarei ${ferramentas} para garantir previsibilidade, transparência e disciplina de execução.`,
+        "Meta em 90 dias: +15–20% de produtividade e -15–20% de retrabalho, com estabilidade operacional.",
+        "Adoção de rituais leves (diário/semanais) para manter cadência e alinhar toda a equipe a resultados."
+      ].join("\n");
+
+      // (5) Melhoria sobre a empresa — 1 linha (apenas uma sentença)
+      // O campo 'empresa' pode conter “o que já tem”; transformamos isso em gancho de melhoria.
+      const gancho = empresa.trim()
+        ? `Com base no que a ${empresaNome} já pratica (${empresa.split("\n").join(" ").slice(0, 120)}...), proponho integrar ainda mais qualidade e operação com calibrações semanais e trilhas de capacitação por performance.`
+        : `A ${empresaNome} pode ganhar tração integrando ainda mais qualidade e operação com calibrações semanais e trilhas por performance.`;
+
+      return { bloco1, bloco2, bloco3, bloco4, bloco5: gancho };
+    }
+
+    function montarResposta(blocos) {
+      // monta tudo em um único texto, respeitando o formato 1–5
+      return [
+        "✨ Resposta sugerida (modelo executivo e natural):",
+        "",
+        "(1) O que fiz e como fiz:",
+        blocos.bloco1,
+        "",
+        "(2) O que farei nesta oportunidade:",
+        blocos.bloco2,
+        "",
+        "(3) KPIs e métricas estratégicas:",
+        blocos.bloco3,
+        "",
+        "(4) Ferramentas e metas:",
+        blocos.bloco4,
+        "",
+        "(5) Melhoria sobre a empresa:",
+        blocos.bloco5 // uma única linha
+      ].join("\n");
+    }
+
+    /* ===================== ENTREVISTA IA ===================== */
     function EntrevistaIA() {
       const [curriculo, setCurriculo] = useState("");
       const [vaga, setVaga] = useState("");
-      const [empresa, setEmpresa] = useState("");
+      const [empresa, setEmpresa] = useState(""); // novo campo (o que a empresa já tem)
       const [pergunta, setPergunta] = useState("");
       const [resposta, setResposta] = useState("");
+      const [gravando, setGravando] = useState(false); // microfone mantido (sem alterações no comportamento)
 
-      // 🔄 Atualização automática da resposta completa
+      // limpa resposta ao mudar qualquer entrada relevante
       useEffect(() => {
         if (!curriculo.trim() || !vaga.trim() || !empresa.trim() || !pergunta.trim()) {
           setResposta("");
           return;
         }
-
-        const respostaExecutiva = `
-✨ Resposta sugerida (modelo executivo e natural):
-
-1️⃣ **O que eu fazia:**
-Na minha trajetória ${curriculo.includes("GOL") ? "na GOL Linhas Aéreas," : "profissional,"} liderei reestruturações operacionais que geraram aumento de eficiência (+25%), redução de custos (-22%) e crescimento de satisfação do cliente (+18%). Trabalhei com controle de OPEX e CAPEX, redesenho de processos e uso de metodologias ágeis.
-
-2️⃣ **O que farei nessa nova oportunidade:**
-Diante da vaga de ${vaga.includes("Gerente") ? "Gerente de Operações Sênior" : "Gestora Executiva"} na ${empresa}, eu aplicaria um plano de estruturação com foco em integração entre áreas, qualidade assistencial e sustentabilidade financeira. Iniciaria com diagnóstico operacional, revisando fluxos e padronizando processos para garantir eficiência e agilidade.
-
-3️⃣ **Análise de KPIs e indicadores:**
-Implantaria indicadores como NPS, tempo médio de atendimento, taxa de ocupação, TAT de exames e índice de retrabalho. A partir desses dados, desenharia painéis no Power BI e dashboards de controle em tempo real para tomada de decisão estratégica junto à diretoria.
-
-4️⃣ **Ferramentas e entregas:**
-Utilizaria ferramentas como Power BI, SAP, CRM, Trello e metodologias Lean para garantir melhoria contínua e previsibilidade de resultados. O foco seria gerar impacto mensurável em até 90 dias, entregando eficiência operacional, integração entre áreas e excelência na experiência do cliente.
-`;
-
-        setResposta(respostaExecutiva.trim());
+        // gera resposta imediata, substituindo a anterior
+        const blocos = buildBlocos({ curriculo, vaga, empresa, pergunta });
+        setResposta(montarResposta(blocos));
       }, [curriculo, vaga, empresa, pergunta]);
 
-      return h("div", { className: "flex flex-col items-center justify-center p-6" },
-        h("h2", { className: "text-3xl font-bold text-indigo-700 mb-4" }, "🤖 Entrevista IA"),
-        h("p", { className: "text-gray-500 mb-8" }, "Respostas inteligentes baseadas no seu currículo, vaga e empresa"),
+      const toggleMic = () => setGravando(g => !g); // mantido simples
 
-        // 🧩 Campos de entrada
-        h("textarea", {
-          placeholder: "📄 Cole aqui seu currículo...",
-          value: curriculo,
-          onChange: (e) => setCurriculo(e.target.value),
-          className: "w-full max-w-2xl h-32 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
-        }),
-        h("textarea", {
-          placeholder: "📋 Cole aqui a descrição da vaga...",
-          value: vaga,
-          onChange: (e) => setVaga(e.target.value),
-          className: "w-full max-w-2xl h-28 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
-        }),
-        h("textarea", {
-          placeholder: "🏢 Nome da empresa / análise da cultura e KPIs...",
-          value: empresa,
-          onChange: (e) => setEmpresa(e.target.value),
-          className: "w-full max-w-2xl h-20 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-purple-400"
-        }),
-        h("textarea", {
-          placeholder: "🎯 Pergunta do recrutador...",
-          value: pergunta,
-          onChange: (e) => setPergunta(e.target.value),
-          className: "w-full max-w-2xl h-20 p-4 border rounded-xl shadow-sm mb-6 focus:ring-2 focus:ring-purple-400"
-        }),
+      return h("div", { className: "container mx-auto px-4 py-8 max-w-4xl" },
+        h("div", { className: "text-center mb-8" },
+          h("div", { className: "inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mb-3" }, h("span", { className: "text-3xl" }, "✨")),
+          h("h2", { className: "text-3xl font-bold text-gray-900" }, "Entrevista IA"),
+          h("p", { className: "text-sm text-gray-600 mt-1" }, "Respostas inteligentes baseadas no seu currículo, na vaga e nos dados da empresa.")
+        ),
 
-        // Exibição da resposta
-        resposta && h("div", { className: "bg-white p-6 rounded-2xl shadow-lg w-full max-w-2xl border-l-4 border-indigo-600" },
-          h("h3", { className: "text-xl font-bold text-indigo-700 mb-3" }, "✨ Resposta sugerida:"),
-          h("p", { className: "text-gray-700 whitespace-pre-line leading-relaxed text-justify" }, resposta)
+        h("div", { className: "bg-white rounded-2xl shadow-xl p-6 space-y-4" },
+          h("textarea", {
+            placeholder: "📄 Cole aqui seu currículo...",
+            value: curriculo,
+            onChange: (e) => setCurriculo(e.target.value),
+            className: "w-full h-28 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+          }),
+          h("textarea", {
+            placeholder: "📋 Cole aqui a descrição da vaga...",
+            value: vaga,
+            onChange: (e) => setVaga(e.target.value),
+            className: "w-full h-24 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+          }),
+          h("textarea", {
+            placeholder: "🏢 Dados da empresa (o que já tem: KPIs, ferramentas, práticas)...",
+            value: empresa,
+            onChange: (e) => setEmpresa(e.target.value),
+            className: "w-full h-20 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+          }),
+          h("div", { className: "flex items-center gap-3" },
+            h("textarea", {
+              placeholder: "🎯 Pergunta do recrutador...",
+              value: pergunta,
+              onChange: (e) => setPergunta(e.target.value),
+              className: "flex-1 h-20 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+            }),
+            h("button", {
+              onClick: toggleMic,
+              className: `w-20 h-20 rounded-full flex items-center justify-center text-3xl ${gravando ? 'bg-red-500 animate-pulse' : 'bg-indigo-600'} text-white`
+            }, gravando ? "🎙" : "🎤")
+          )
+        ),
+
+        resposta && h("div", { className: "bg-white rounded-2xl shadow-lg p-6 mt-6 border-l-4 border-indigo-600" },
+          h("h3", { className: "text-xl font-bold text-indigo-700 mb-3" }, "✨ Resposta sugerida"),
+          h("p", { className: "resp-text text-gray-800 leading-relaxed" }, resposta)
         )
       );
     }
