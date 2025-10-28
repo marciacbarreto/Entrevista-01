@@ -7,13 +7,19 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fadeIn { animation: fadeIn .4s ease; }
+  </style>
 </head>
+
 <body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
   <div id="app"></div>
 
   <script>
     const { useState, useEffect, createElement: h } = React;
 
+    /* ================= LOGIN ================= */
     function App() {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
       const [email, setEmail] = useState("");
@@ -24,7 +30,7 @@
       const senhaCorreta = "2025ia";
 
       const handleLogin = () => {
-        if (email === loginCorreto && senha === senhaCorreta) {
+        if (email.trim() === loginCorreto && senha === senhaCorreta) {
           setIsLoggedIn(true);
           setErro("");
         } else {
@@ -62,56 +68,79 @@
       return h(EntrevistaIA);
     }
 
-    // 🚀 Aplicativo Entrevista IA
+    /* ================= ENTREVISTA IA ================= */
     function EntrevistaIA() {
       const [curriculo, setCurriculo] = useState("");
       const [vaga, setVaga] = useState("");
       const [pergunta, setPergunta] = useState("");
       const [resposta, setResposta] = useState("");
       const [gravando, setGravando] = useState(false);
+      const [gerando, setGerando] = useState(false);
 
-      // 🎤 Gravação simulada (mantida igual)
+      /* 🔄 CORREÇÃO — limpa resposta a cada mudança de entrada */
+      useEffect(() => {
+        setResposta("");
+      }, [curriculo, vaga, pergunta]);
+
+      /* 🎤 Microfone visual (simulado, não interrompe fala) */
       const handleMicClick = () => {
-        setGravando(!gravando);
+        setGravando((prev) => !prev);
       };
 
-      // 🧠 Geração da resposta cruzada (atualizada)
+      /* ⚡ Geração rápida da resposta cruzando currículo + vaga + pergunta */
       const gerarResposta = () => {
         if (!curriculo.trim() || !vaga.trim() || !pergunta.trim()) {
           setResposta("Por favor, insira o currículo, a vaga e a pergunta antes de gerar a resposta.");
           return;
         }
 
-        const respostaExecutiva = `
-✨ Resposta sugerida (modelo executivo e natural):
+        setGerando(true);
 
-Com base na minha trajetória, ${curriculo.includes("GOL") ? "atuando por mais de uma década na GOL Linhas Aéreas," : "com ampla experiência em gestão e processos,"} desenvolvi habilidades sólidas em reestruturação de processos, análise de desempenho e liderança de equipes multidisciplinares.
-  
-Diante da vaga de ${vaga.includes("Gerente") ? "Gerente de Operações Sênior" : "gestão executiva"}, eu iniciaria com um diagnóstico detalhado das operações, identificando gargalos e oportunidades de melhoria, aplicando metodologias ágeis e indicadores de performance.
-  
-Em seguida, estruturaria KPIs estratégicos como eficiência operacional, tempo de resposta e satisfação do cliente, utilizando ferramentas como Power BI, CRM e relatórios de produtividade. Meu foco seria criar uma operação sustentável, com resultados mensuráveis em até 90 dias, garantindo integração entre as áreas e qualidade de entrega.
+        const temGOL = /gol/i.test(curriculo);
+        const temSaude = /hospital|cl(í|i)nicas?|sa(ú|u)de|centros m(é|e)dicos/i.test(vaga);
+        const temGerente = /gerente/i.test(vaga);
+
+        const empresa = temGOL ? "na GOL Linhas Aéreas" : "em operações de grande porte";
+        const setor = temSaude ? "no setor hospitalar e de clínicas" : "no ambiente corporativo";
+        const titulo = temGerente ? "Gerente de Operações Sênior" : "líder de operações";
+
+        const respostaExecutiva = `
+✨ Resposta sugerida (modelo executivo e natural)
+
+Com base na minha trajetória ${empresa}, desenvolvi competências sólidas em planejamento, liderança e reestruturação de processos com foco em resultados mensuráveis.
+Para a vaga de **${titulo}**, ${setor}, e considerando a pergunta “${pergunta}”, iniciaria com um **diagnóstico operacional detalhado**, avaliando fluxos, performance e gargalos.
+
+Aplicaria metodologias ágeis (como PDCA e OKRs) e criaria uma governança baseada em **KPIs de eficiência, qualidade e experiência do cliente**.
+Utilizaria ferramentas como **Power BI, Trello e CRM** para monitoramento em tempo real, com metas de **melhoria de 15% na produtividade** e **aumento de 10 pontos no NPS** em 90 dias.
+
+Minha atuação combina **visão estratégica e execução prática**, garantindo entregas rápidas, integração entre áreas e otimização dos recursos.
 `;
 
-        setResposta(respostaExecutiva.trim());
+        setTimeout(() => {
+          setResposta(respostaExecutiva.trim());
+          setGerando(false);
+        }, 300);
       };
 
+      /* ================= LAYOUT ================= */
       return h("div", { className: "flex flex-col items-center justify-center p-6" },
         h("h2", { className: "text-3xl font-bold text-indigo-700 mb-4" }, "🤖 Entrevista IA"),
         h("p", { className: "text-gray-500 mb-8" }, "Respostas inteligentes baseadas no seu currículo e na vaga"),
 
-        // Campos principais
         h("textarea", {
           placeholder: "📄 Cole aqui seu currículo...",
           value: curriculo,
           onChange: (e) => setCurriculo(e.target.value),
           className: "w-full max-w-2xl h-32 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
         }),
+
         h("textarea", {
           placeholder: "📋 Cole aqui a descrição da vaga...",
           value: vaga,
           onChange: (e) => setVaga(e.target.value),
           className: "w-full max-w-2xl h-28 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
         }),
+
         h("textarea", {
           placeholder: "🎯 Digite ou fale a pergunta do recrutador...",
           value: pergunta,
@@ -119,20 +148,20 @@ Em seguida, estruturaria KPIs estratégicos como eficiência operacional, tempo 
           className: "w-full max-w-2xl h-20 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-purple-400"
         }),
 
-        // Botões
         h("div", { className: "flex gap-3 mb-6" },
           h("button", {
             onClick: handleMicClick,
             className: `px-5 py-3 rounded-full font-semibold ${gravando ? 'bg-red-500' : 'bg-purple-600'} text-white hover:opacity-90 transition-all`
           }, gravando ? "🎙 Gravando..." : "🎤 Microfone"),
+
           h("button", {
             onClick: gerarResposta,
-            className: "px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all"
-          }, "⚡ Gerar Resposta")
+            disabled: gerando,
+            className: `px-6 py-3 rounded-full text-white font-semibold transition-all ${gerando ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`
+          }, gerando ? "⏳ Gerando..." : "⚡ Gerar Resposta")
         ),
 
-        // Exibição da resposta
-        resposta && h("div", { className: "bg-white p-6 rounded-2xl shadow-lg w-full max-w-2xl border-l-4 border-indigo-600" },
+        resposta && h("div", { className: "bg-white p-6 rounded-2xl shadow-lg w-full max-w-2xl border-l-4 border-indigo-600 animate-fadeIn" },
           h("h3", { className: "text-xl font-bold text-indigo-700 mb-3" }, "✨ Resposta sugerida:"),
           h("p", { className: "text-gray-700 whitespace-pre-line leading-relaxed text-justify" }, resposta)
         )
