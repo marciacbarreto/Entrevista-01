@@ -12,9 +12,8 @@
   <div id="app"></div>
 
   <script>
-    const { useState, createElement: h } = React;
+    const { useState, useEffect, createElement: h } = React;
 
-    // === APP PRINCIPAL COM LOGIN ===
     function App() {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
       const [email, setEmail] = useState("");
@@ -63,7 +62,7 @@
       return h(EntrevistaIA);
     }
 
-    // === ENTREVISTA IA ===
+    // 🚀 Aplicativo Entrevista IA
     function EntrevistaIA() {
       const [curriculo, setCurriculo] = useState("");
       const [vaga, setVaga] = useState("");
@@ -71,82 +70,72 @@
       const [resposta, setResposta] = useState("");
       const [gravando, setGravando] = useState(false);
 
-      // Função de cruzamento de informações
-      function gerarRespostaExecutiva() {
-        if (!pergunta.trim()) {
-          setResposta("Digite a pergunta do recrutador para gerar uma resposta.");
+      // 🎤 Gravação simulada (mantida igual)
+      const handleMicClick = () => {
+        setGravando(!gravando);
+      };
+
+      // 🧠 Geração da resposta cruzada (atualizada)
+      const gerarResposta = () => {
+        if (!curriculo.trim() || !vaga.trim() || !pergunta.trim()) {
+          setResposta("Por favor, insira o currículo, a vaga e a pergunta antes de gerar a resposta.");
           return;
         }
 
-        // Combina currículo + vaga + pergunta
-        let baseResposta = `
+        const respostaExecutiva = `
 ✨ Resposta sugerida (modelo executivo e natural):
 
-Com base na minha trajetória em gestão de processos e liderança estratégica, eu estruturaria a operação com foco em **eficiência, qualidade e resultados mensuráveis**.
-O primeiro passo seria realizar um diagnóstico operacional detalhado, mapeando fluxos e gargalos, e aplicando **metodologias ágeis e gestão por indicadores**.
-Utilizaria ferramentas como Power BI, CRM e dashboards para garantir decisões baseadas em dados.
-Minha experiência mostra resultados como redução de custos e aumento de satisfação de clientes — competências diretamente alinhadas com as exigências desta vaga.
-Finalizaria estruturando um modelo de governança com metas claras e entregas semanais, assegurando **padronização, agilidade e cultura de melhoria contínua**.
-        `;
+Com base na minha trajetória, ${curriculo.includes("GOL") ? "atuando por mais de uma década na GOL Linhas Aéreas," : "com ampla experiência em gestão e processos,"} desenvolvi habilidades sólidas em reestruturação de processos, análise de desempenho e liderança de equipes multidisciplinares.
+  
+Diante da vaga de ${vaga.includes("Gerente") ? "Gerente de Operações Sênior" : "gestão executiva"}, eu iniciaria com um diagnóstico detalhado das operações, identificando gargalos e oportunidades de melhoria, aplicando metodologias ágeis e indicadores de performance.
+  
+Em seguida, estruturaria KPIs estratégicos como eficiência operacional, tempo de resposta e satisfação do cliente, utilizando ferramentas como Power BI, CRM e relatórios de produtividade. Meu foco seria criar uma operação sustentável, com resultados mensuráveis em até 90 dias, garantindo integração entre as áreas e qualidade de entrega.
+`;
 
-        // Personalização leve conforme a pergunta
-        if (pergunta.toLowerCase().includes("estruturaria") || pergunta.toLowerCase().includes("estrutura")) {
-          baseResposta += "\nEssa estratégia garante clareza, integração entre equipes e controle sobre os indicadores operacionais.";
-        } else if (pergunta.toLowerCase().includes("liderança")) {
-          baseResposta += "\nMinha liderança é voltada para resultados e desenvolvimento de pessoas, incentivando autonomia e colaboração.";
-        } else if (pergunta.toLowerCase().includes("desafio")) {
-          baseResposta += "\nEncaro desafios como oportunidades para redesenhar processos e alcançar novos patamares de desempenho.";
-        }
+        setResposta(respostaExecutiva.trim());
+      };
 
-        setResposta(baseResposta.trim());
-      }
+      return h("div", { className: "flex flex-col items-center justify-center p-6" },
+        h("h2", { className: "text-3xl font-bold text-indigo-700 mb-4" }, "🤖 Entrevista IA"),
+        h("p", { className: "text-gray-500 mb-8" }, "Respostas inteligentes baseadas no seu currículo e na vaga"),
 
-      function toggleGravacao() {
-        if (!gravando) {
-          setGravando(true);
-          setTimeout(() => {
-            setGravando(false);
-            setPergunta("Como você estruturaria a área de operações?");
-            gerarRespostaExecutiva();
-          }, 2000);
-        } else {
-          setGravando(false);
-        }
-      }
-
-      return h("div", { className: "flex flex-col items-center justify-center p-8" },
-        h("h1", { className: "text-3xl font-bold text-indigo-700 mb-6" }, "✨ Entrevista IA"),
+        // Campos principais
         h("textarea", {
-          placeholder: "Cole aqui seu currículo...",
-          className: "w-full max-w-3xl h-32 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500",
+          placeholder: "📄 Cole aqui seu currículo...",
           value: curriculo,
-          onChange: (e) => setCurriculo(e.target.value)
+          onChange: (e) => setCurriculo(e.target.value),
+          className: "w-full max-w-2xl h-32 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
         }),
         h("textarea", {
-          placeholder: "Cole aqui a descrição da vaga...",
-          className: "w-full max-w-3xl h-32 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500",
+          placeholder: "📋 Cole aqui a descrição da vaga...",
           value: vaga,
-          onChange: (e) => setVaga(e.target.value)
+          onChange: (e) => setVaga(e.target.value),
+          className: "w-full max-w-2xl h-28 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
         }),
         h("textarea", {
-          placeholder: "Digite ou fale a pergunta do recrutador...",
-          className: "w-full max-w-3xl h-20 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500",
+          placeholder: "🎯 Digite ou fale a pergunta do recrutador...",
           value: pergunta,
-          onChange: (e) => setPergunta(e.target.value)
+          onChange: (e) => setPergunta(e.target.value),
+          className: "w-full max-w-2xl h-20 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-purple-400"
         }),
-        h("div", { className: "flex gap-4 mb-6" },
+
+        // Botões
+        h("div", { className: "flex gap-3 mb-6" },
           h("button", {
-            onClick: toggleGravacao,
-            className: `px-6 py-3 rounded-full text-white font-semibold ${gravando ? "bg-red-500 animate-pulse" : "bg-indigo-600 hover:bg-indigo-700"}`
-          }, gravando ? "🎙️ Gravando..." : "🎤 Microfone"),
+            onClick: handleMicClick,
+            className: `px-5 py-3 rounded-full font-semibold ${gravando ? 'bg-red-500' : 'bg-purple-600'} text-white hover:opacity-90 transition-all`
+          }, gravando ? "🎙 Gravando..." : "🎤 Microfone"),
           h("button", {
-            onClick: gerarRespostaExecutiva,
-            className: "px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700"
+            onClick: gerarResposta,
+            className: "px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all"
           }, "⚡ Gerar Resposta")
         ),
-        resposta && h("div", {
-          className: "bg-white shadow-xl rounded-2xl p-6 w-full max-w-3xl text-left border-l-4 border-indigo-500"
-        }, h("p", { className: "text-gray-800 whitespace-pre-line leading-relaxed" }, resposta))
+
+        // Exibição da resposta
+        resposta && h("div", { className: "bg-white p-6 rounded-2xl shadow-lg w-full max-w-2xl border-l-4 border-indigo-600" },
+          h("h3", { className: "text-xl font-bold text-indigo-700 mb-3" }, "✨ Resposta sugerida:"),
+          h("p", { className: "text-gray-700 whitespace-pre-line leading-relaxed text-justify" }, resposta)
+        )
       );
     }
 
