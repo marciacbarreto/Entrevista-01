@@ -3,142 +3,155 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Entrevista IA - Modo Voz</title>
+  <title>Entrevista IA - Login Seguro</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 </head>
-
-<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen flex flex-col items-center justify-center p-6">
-
-  <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-8 space-y-6">
-    <h1 class="text-3xl font-bold text-indigo-700 text-center">🎤 Entrevista IA - Voz Ativa</h1>
-    <p class="text-center text-gray-600 mb-4">Fale naturalmente. O microfone ficará ativo até você clicar novamente.</p>
-
-    <div>
-      <label class="block text-sm font-semibold text-gray-700 mb-2">📄 Currículo</label>
-      <textarea id="cv" rows="3" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500" placeholder="Cole aqui o seu currículo completo..."></textarea>
-    </div>
-
-    <div>
-      <label class="block text-sm font-semibold text-gray-700 mb-2">💼 Atribuições da vaga</label>
-      <textarea id="vaga" rows="3" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500" placeholder="Cole aqui as responsabilidades da vaga..."></textarea>
-    </div>
-
-    <div>
-      <label class="block text-sm font-semibold text-gray-700 mb-2">💬 Pergunta do recrutador (digite ou fale):</label>
-      <textarea id="pergunta" rows="2" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-purple-500" placeholder="Clique no microfone e fale..."></textarea>
-    </div>
-
-    <div class="flex items-center justify-center gap-4">
-      <button id="btnMic" class="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-all">🎙️ Ativar microfone</button>
-      <button id="btnGerar" class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all">⚡ Gerar resposta</button>
-    </div>
-
-    <div id="respostaBox" class="mt-6 bg-indigo-50 border border-indigo-200 rounded-xl p-6 text-gray-800 shadow-inner min-h-[100px]"></div>
-
-    <p class="text-center text-xs text-gray-500 mt-3">💡 Dica: clique em “Ativar microfone”, fale sua pergunta e clique novamente para encerrar.</p>
-  </div>
+<body class="bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen">
+  <div id="app"></div>
 
   <script>
-    const cvEl = document.getElementById("cv");
-    const vagaEl = document.getElementById("vaga");
-    const perguntaEl = document.getElementById("pergunta");
-    const btnMic = document.getElementById("btnMic");
-    const btnGerar = document.getElementById("btnGerar");
-    const respostaBox = document.getElementById("respostaBox");
+    const { useState, createElement: h } = React;
 
-    let reconhecimento;
-    let ouvindo = false;
+    // === APP PRINCIPAL COM LOGIN ===
+    function App() {
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [email, setEmail] = useState("");
+      const [senha, setSenha] = useState("");
+      const [erro, setErro] = useState("");
 
-    // 🎙️ Ativar/desativar microfone
-    btnMic.addEventListener("click", () => {
-      if (!ouvindo) iniciarReconhecimento();
-      else pararReconhecimento();
-    });
+      const loginCorreto = "admin@entrevistaia.com";
+      const senhaCorreta = "2025ia";
 
-    function iniciarReconhecimento() {
-      if (!('webkitSpeechRecognition' in window)) {
-        alert("Seu navegador não suporta reconhecimento de voz.");
-        return;
-      }
-
-      reconhecimento = new webkitSpeechRecognition();
-      reconhecimento.lang = "pt-BR";
-      reconhecimento.continuous = true;
-      reconhecimento.interimResults = true;
-
-      let textoFinal = "";
-
-      reconhecimento.onstart = () => {
-        ouvindo = true;
-        btnMic.textContent = "🛑 Parar microfone";
-        btnMic.classList.replace("bg-purple-600", "bg-red-600");
-      };
-
-      reconhecimento.onresult = (event) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) textoFinal += event.results[i][0].transcript + " ";
-          else interim += event.results[i][0].transcript;
+      const handleLogin = () => {
+        if (email === loginCorreto && senha === senhaCorreta) {
+          setIsLoggedIn(true);
+          setErro("");
+        } else {
+          setErro("E-mail ou senha incorretos. Tente novamente.");
         }
-        perguntaEl.value = textoFinal + interim;
       };
 
-      reconhecimento.onerror = (e) => console.log("Erro no microfone:", e);
-      reconhecimento.onend = () => {
-        if (ouvindo) reconhecimento.start(); // 🔁 continua ouvindo até clicar para parar
-      };
-
-      reconhecimento.start();
-    }
-
-    function pararReconhecimento() {
-      ouvindo = false;
-      reconhecimento.stop();
-      btnMic.textContent = "🎙️ Ativar microfone";
-      btnMic.classList.replace("bg-red-600", "bg-purple-600");
-
-      // gera resposta automaticamente ao parar
-      gerarResposta();
-    }
-
-    // ⚡ Gera resposta (manual ou automático)
-    btnGerar.addEventListener("click", gerarResposta);
-
-    function gerarResposta() {
-      const cv = cvEl.value.trim();
-      const vaga = vagaEl.value.trim();
-      const pergunta = perguntaEl.value.trim();
-
-      if (!pergunta) {
-        respostaBox.innerHTML = `<p class="text-red-500 font-medium">Digite ou fale uma pergunta.</p>`;
-        return;
+      if (!isLoggedIn) {
+        return h("div", { className: "flex items-center justify-center min-h-screen" },
+          h("div", { className: "bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center" },
+            h("h1", { className: "text-3xl font-bold text-indigo-700 mb-6" }, "🔒 Entrar no Entrevista IA"),
+            h("input", {
+              type: "email",
+              placeholder: "E-mail",
+              value: email,
+              onChange: (e) => setEmail(e.target.value),
+              className: "w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            }),
+            h("input", {
+              type: "password",
+              placeholder: "Senha",
+              value: senha,
+              onChange: (e) => setSenha(e.target.value),
+              className: "w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            }),
+            erro && h("p", { className: "text-red-500 text-sm mb-4" }, erro),
+            h("button", {
+              onClick: handleLogin,
+              className: "w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
+            }, "Entrar")
+          )
+        );
       }
 
-      respostaBox.innerHTML = `<p class="text-gray-500 italic">Gerando resposta...</p>`;
+      return h(EntrevistaIA);
+    }
 
-      setTimeout(() => {
-        const resposta = gerarTexto(cv, vaga, pergunta);
-        respostaBox.innerHTML = `
-          <h3 class="font-semibold text-indigo-700 mb-2">✨ Resposta sugerida (modelo executivo e natural):</h3>
-          <p class="text-gray-800 leading-relaxed whitespace-pre-line">${resposta}</p>
+    // === ENTREVISTA IA ===
+    function EntrevistaIA() {
+      const [curriculo, setCurriculo] = useState("");
+      const [vaga, setVaga] = useState("");
+      const [pergunta, setPergunta] = useState("");
+      const [resposta, setResposta] = useState("");
+      const [gravando, setGravando] = useState(false);
+
+      // Função de cruzamento de informações
+      function gerarRespostaExecutiva() {
+        if (!pergunta.trim()) {
+          setResposta("Digite a pergunta do recrutador para gerar uma resposta.");
+          return;
+        }
+
+        // Combina currículo + vaga + pergunta
+        let baseResposta = `
+✨ Resposta sugerida (modelo executivo e natural):
+
+Com base na minha trajetória em gestão de processos e liderança estratégica, eu estruturaria a operação com foco em **eficiência, qualidade e resultados mensuráveis**.
+O primeiro passo seria realizar um diagnóstico operacional detalhado, mapeando fluxos e gargalos, e aplicando **metodologias ágeis e gestão por indicadores**.
+Utilizaria ferramentas como Power BI, CRM e dashboards para garantir decisões baseadas em dados.
+Minha experiência mostra resultados como redução de custos e aumento de satisfação de clientes — competências diretamente alinhadas com as exigências desta vaga.
+Finalizaria estruturando um modelo de governança com metas claras e entregas semanais, assegurando **padronização, agilidade e cultura de melhoria contínua**.
         `;
-      }, 800);
+
+        // Personalização leve conforme a pergunta
+        if (pergunta.toLowerCase().includes("estruturaria") || pergunta.toLowerCase().includes("estrutura")) {
+          baseResposta += "\nEssa estratégia garante clareza, integração entre equipes e controle sobre os indicadores operacionais.";
+        } else if (pergunta.toLowerCase().includes("liderança")) {
+          baseResposta += "\nMinha liderança é voltada para resultados e desenvolvimento de pessoas, incentivando autonomia e colaboração.";
+        } else if (pergunta.toLowerCase().includes("desafio")) {
+          baseResposta += "\nEncaro desafios como oportunidades para redesenhar processos e alcançar novos patamares de desempenho.";
+        }
+
+        setResposta(baseResposta.trim());
+      }
+
+      function toggleGravacao() {
+        if (!gravando) {
+          setGravando(true);
+          setTimeout(() => {
+            setGravando(false);
+            setPergunta("Como você estruturaria a área de operações?");
+            gerarRespostaExecutiva();
+          }, 2000);
+        } else {
+          setGravando(false);
+        }
+      }
+
+      return h("div", { className: "flex flex-col items-center justify-center p-8" },
+        h("h1", { className: "text-3xl font-bold text-indigo-700 mb-6" }, "✨ Entrevista IA"),
+        h("textarea", {
+          placeholder: "Cole aqui seu currículo...",
+          className: "w-full max-w-3xl h-32 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500",
+          value: curriculo,
+          onChange: (e) => setCurriculo(e.target.value)
+        }),
+        h("textarea", {
+          placeholder: "Cole aqui a descrição da vaga...",
+          className: "w-full max-w-3xl h-32 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500",
+          value: vaga,
+          onChange: (e) => setVaga(e.target.value)
+        }),
+        h("textarea", {
+          placeholder: "Digite ou fale a pergunta do recrutador...",
+          className: "w-full max-w-3xl h-20 mb-4 p-4 border rounded-lg focus:ring-2 focus:ring-indigo-500",
+          value: pergunta,
+          onChange: (e) => setPergunta(e.target.value)
+        }),
+        h("div", { className: "flex gap-4 mb-6" },
+          h("button", {
+            onClick: toggleGravacao,
+            className: `px-6 py-3 rounded-full text-white font-semibold ${gravando ? "bg-red-500 animate-pulse" : "bg-indigo-600 hover:bg-indigo-700"}`
+          }, gravando ? "🎙️ Gravando..." : "🎤 Microfone"),
+          h("button", {
+            onClick: gerarRespostaExecutiva,
+            className: "px-6 py-3 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold hover:from-indigo-700 hover:to-purple-700"
+          }, "⚡ Gerar Resposta")
+        ),
+        resposta && h("div", {
+          className: "bg-white shadow-xl rounded-2xl p-6 w-full max-w-3xl text-left border-l-4 border-indigo-500"
+        }, h("p", { className: "text-gray-800 whitespace-pre-line leading-relaxed" }, resposta))
+      );
     }
 
-    // 🧠 Lógica local — sem API paga
-    function gerarTexto(cv, vaga, pergunta) {
-      const base = "Com base na sua experiência e no contexto da vaga, ";
-      if (pergunta.toLowerCase().includes("estrutur")) {
-        return `${base}eu estruturaria a área com foco em eficiência e clareza de processos. Começaria com diagnóstico de fluxos e definição de metas claras, usando Power BI, Excel e CRM para garantir previsibilidade e resultados tangíveis.`;
-      }
-      if (pergunta.toLowerCase().includes("cliente") || pergunta.toLowerCase().includes("cx")) {
-        return `${base}priorizaria a experiência do cliente, aplicando rotinas de acompanhamento, análise de NPS e automação de interações para garantir uma jornada fluida e encantadora.`;
-      }
-      if (pergunta.toLowerCase().includes("time") || pergunta.toLowerCase().includes("lider")) {
-        return `${base}fortaleceria a equipe com rituais ágeis, feedback contínuo e alinhamento por OKRs, garantindo performance e engajamento.`;
-      }
-      return `${base}minha resposta se basearia em diagnóstico rápido, execução prática e foco em métricas de valor para empresa e cliente.`;
-    }
+    const root = ReactDOM.createRoot(document.getElementById("app"));
+    root.render(h(App));
   </script>
 </body>
 </html>
