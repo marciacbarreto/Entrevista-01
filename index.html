@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Entrevista IA - Login Seguro</title>
+  <title>Entrevista IA - Inteligente</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -12,7 +12,7 @@
   <div id="app"></div>
 
   <script>
-    const { useState, useEffect, createElement: h } = React;
+    const { useState, createElement: h } = React;
 
     function App() {
       const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -27,33 +27,27 @@
         if (email === loginCorreto && senha === senhaCorreta) {
           setIsLoggedIn(true);
           setErro("");
-        } else {
-          setErro("E-mail ou senha incorretos. Tente novamente.");
-        }
+        } else setErro("E-mail ou senha incorretos. Tente novamente.");
       };
 
       if (!isLoggedIn) {
         return h("div", { className: "flex items-center justify-center min-h-screen" },
           h("div", { className: "bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm text-center" },
-            h("h1", { className: "text-3xl font-bold text-indigo-700 mb-6" }, "🔒 Entrar no Entrevista IA"),
+            h("h1", { className: "text-2xl font-bold text-indigo-700 mb-6" }, "🔒 Entrar no Entrevista IA"),
             h("input", {
-              type: "email",
-              placeholder: "E-mail",
-              value: email,
-              onChange: (e) => setEmail(e.target.value),
-              className: "w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              type: "email", placeholder: "E-mail",
+              value: email, onChange: e => setEmail(e.target.value),
+              className: "w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             }),
             h("input", {
-              type: "password",
-              placeholder: "Senha",
-              value: senha,
-              onChange: (e) => setSenha(e.target.value),
-              className: "w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              type: "password", placeholder: "Senha",
+              value: senha, onChange: e => setSenha(e.target.value),
+              className: "w-full mb-4 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             }),
             erro && h("p", { className: "text-red-500 text-sm mb-4" }, erro),
             h("button", {
               onClick: handleLogin,
-              className: "w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all"
+              className: "w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:opacity-90"
             }, "Entrar")
           )
         );
@@ -65,86 +59,101 @@
     function EntrevistaIA() {
       const [curriculo, setCurriculo] = useState("");
       const [vaga, setVaga] = useState("");
+      const [empresa, setEmpresa] = useState("");
       const [pergunta, setPergunta] = useState("");
       const [resposta, setResposta] = useState("");
       const [gravando, setGravando] = useState(false);
 
       const handleMicClick = () => setGravando(!gravando);
 
-      // Atualiza automaticamente ao gerar ou mudar a pergunta
       const gerarResposta = () => {
-        if (!curriculo.trim() || !vaga.trim() || !pergunta.trim()) {
-          setResposta("Por favor, insira o currículo, a vaga e a pergunta antes de gerar a resposta.");
+        if (!curriculo.trim() || !vaga.trim()) {
+          setResposta("Por favor, insira o currículo e a vaga antes de gerar a resposta.");
           return;
         }
 
-        let experiencia = "";
-        if (curriculo.includes("estagiário") || curriculo.includes("atendimento")) {
-          experiencia = "(1) Atuei com suporte e atendimento, aplicando escuta ativa e organização para agilizar processos e melhorar a comunicação interna.";
-        } else if (curriculo.includes("Gestora") || curriculo.includes("coordenadora")) {
-          experiencia = "(1) Liderei reestruturações de processos e implementei metodologias que reduziram custos e aumentaram a eficiência em mais de 20%.";
-        } else {
-          experiencia = "(1) Atuei em projetos de melhoria e organização operacional com foco em resultados e eficiência.";
-        }
+        // 🔍 Cruzamento automático
+        const isSenior = curriculo.match(/gestor|coordenador|lider|supervisor|gerente/i);
+        const temFerramentas = curriculo.match(/excel|power bi|crm|trello|oracle|sap/i);
+        const area = vaga.match(/customer|sucesso|atendimento/i)
+          ? "Customer Experience"
+          : vaga.match(/operações|processos|financeiro/i)
+            ? "Operações"
+            : "Gestão Geral";
 
-        const empresa = vaga.match(/na ([A-Z][a-zA-Z]+)/);
-        const nomeEmpresa = empresa ? empresa[1] : "a empresa contratante";
+        // Bloco 1 – O que fez e como
+        const bloco1 = isSenior
+          ? "(1) O que fiz e como fiz:\nLiderei reestruturações e otimizações de processos com foco em eficiência e governança, aplicando metodologias ágeis e indicadores de performance."
+          : "(1) O que fiz e como fiz:\nAtuei em atendimento e suporte aplicando escuta ativa, empatia e organização de processos para garantir eficiência e boa experiência ao cliente.";
 
-        const respostaFinal = `
-✨ Resposta sugerida (modelo executivo e natural):
+        // Bloco 2 – O que fará nesta oportunidade
+        const bloco2 = `(2) O que farei e como nesta oportunidade na ${empresa || "nova empresa"}:\n` +
+          `Realizarei diagnóstico detalhado de fluxos e gargalos, propondo melhorias que otimizem as entregas e reduzam falhas.\n` +
+          `Aplicarei metodologias de melhoria contínua (como PDCA e OKRs) e integrarei áreas de ${area} para garantir comunicação clara e qualidade de execução.`;
 
-${experiencia}
+        // Bloco 3 – KPIs e métricas
+        const bloco3 = "(3) KPIs e métricas:\n" +
+          "Monitorarei indicadores como NPS, CSAT, tempo de resposta e volume de incidentes, utilizando-os para priorizar melhorias e fortalecer resultados.";
 
-(2) Nesta oportunidade em ${nomeEmpresa}, aplicarei meus conhecimentos em Customer Experience e atendimento digital para aprimorar fluxos de comunicação e entrega de resultados. 
-Iniciarei com diagnóstico detalhado dos processos, aplicando metodologias ágeis (PDCA, OKRs) e alinhando ações às metas da área.
+        // Bloco 4 – Ferramentas e plano
+        const bloco4 = temFerramentas
+          ? "(4) Ferramentas e plano:\nUsarei Power BI, Excel e CRM para consolidar dados, monitorar fluxos e apoiar decisões rápidas. As ferramentas serão aplicadas para manter transparência e previsibilidade operacional."
+          : "(4) Ferramentas e plano:\nAdotarei ferramentas colaborativas e de controle de tarefas para acompanhar o progresso das atividades e garantir alinhamento entre as equipes.";
 
-(3) Trabalharei com indicadores como NPS, CSAT e eficiência de resposta, usando Power BI, Excel e CRM para mapear oportunidades e apoiar decisões estratégicas.
+        // Bloco 5 – Resultados esperados
+        const bloco5 = "(5) Resultados esperados:\n" +
+          "• Redução de retrabalho e incidentes recorrentes\n" +
+          "• Padronização de processos e previsibilidade nas entregas\n" +
+          "• Melhoria nos indicadores de satisfação e eficiência operacional\n" +
+          "• Fortalecimento da comunicação entre áreas e melhor experiência do cliente.";
 
-(4) O foco será contribuir para a integração entre equipes, garantir qualidade nas entregas e apoiar a empresa em ganhos rápidos e melhoria contínua nos primeiros 90 dias.
-        `;
-        setResposta(respostaFinal.trim());
+        setResposta(
+          `✨ Resposta sugerida (modelo executivo e natural):\n\n${bloco1}\n\n${bloco2}\n\n${bloco3}\n\n${bloco4}\n\n${bloco5}`
+        );
       };
 
-      useEffect(() => {
-        if (pergunta.trim()) gerarResposta();
-      }, [pergunta]);
-
-      return h("div", { className: "flex flex-col items-center justify-center p-6" },
-        h("h2", { className: "text-3xl font-bold text-indigo-700 mb-4" }, "🤖 Entrevista IA"),
-        h("p", { className: "text-gray-500 mb-8" }, "Respostas inteligentes baseadas no seu currículo e na vaga"),
+      return h("div", { className: "flex flex-col items-center justify-center p-6 space-y-4" },
+        h("h2", { className: "text-3xl font-bold text-indigo-700" }, "🤖 Entrevista IA"),
+        h("p", { className: "text-gray-500 mb-4" }, "Respostas inteligentes baseadas no seu currículo, vaga e empresa."),
 
         h("textarea", {
           placeholder: "📄 Cole aqui seu currículo...",
           value: curriculo,
-          onChange: (e) => setCurriculo(e.target.value),
-          className: "w-full max-w-2xl h-32 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
+          onChange: e => setCurriculo(e.target.value),
+          className: "w-full max-w-2xl h-32 p-4 border rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-400"
         }),
         h("textarea", {
           placeholder: "📋 Cole aqui a descrição da vaga...",
           value: vaga,
-          onChange: (e) => setVaga(e.target.value),
-          className: "w-full max-w-2xl h-28 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-indigo-400"
+          onChange: e => setVaga(e.target.value),
+          className: "w-full max-w-2xl h-28 p-4 border rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-400"
+        }),
+        h("input", {
+          placeholder: "🏢 Nome da empresa...",
+          value: empresa,
+          onChange: e => setEmpresa(e.target.value),
+          className: "w-full max-w-2xl p-4 border rounded-xl shadow-sm focus:ring-2 focus:ring-indigo-400"
         }),
         h("textarea", {
-          placeholder: "🎯 Digite ou fale a pergunta do recrutador...",
+          placeholder: "🎯 Pergunta do recrutador (opcional)...",
           value: pergunta,
-          onChange: (e) => setPergunta(e.target.value),
-          className: "w-full max-w-2xl h-20 p-4 border rounded-xl shadow-sm mb-4 focus:ring-2 focus:ring-purple-400"
+          onChange: e => setPergunta(e.target.value),
+          className: "w-full max-w-2xl h-20 p-4 border rounded-xl shadow-sm focus:ring-2 focus:ring-purple-400"
         }),
 
-        h("div", { className: "flex gap-3 mb-6" },
+        h("div", { className: "flex gap-3" },
           h("button", {
             onClick: handleMicClick,
-            className: `px-5 py-3 rounded-full font-semibold ${gravando ? 'bg-red-500' : 'bg-purple-600'} text-white hover:opacity-90 transition-all`
+            className: `px-6 py-3 rounded-full font-semibold ${gravando ? 'bg-red-500' : 'bg-purple-600'} text-white hover:opacity-90 transition-all`
           }, gravando ? "🎙 Gravando..." : "🎤 Microfone"),
           h("button", {
             onClick: gerarResposta,
             className: "px-6 py-3 rounded-full bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all"
-          }, "⚡ Atualizar Resposta")
+          }, "⚡ Atualizar resposta")
         ),
 
         resposta && h("div", { className: "bg-white p-6 rounded-2xl shadow-lg w-full max-w-2xl border-l-4 border-indigo-600" },
-          h("h3", { className: "text-xl font-bold text-indigo-700 mb-3" }, "✨ Resposta sugerida:"),
+          h("h3", { className: "text-xl font-bold text-indigo-700 mb-3" }, "✨ Resposta sugerida"),
           h("p", { className: "text-gray-700 whitespace-pre-line leading-relaxed text-justify" }, resposta)
         )
       );
